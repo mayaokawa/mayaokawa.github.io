@@ -27,10 +27,10 @@ latest_posts:
   limit: 3 # leave blank to include all the blog posts
 ---
 
-I am currently a Research Scientist at the CBS-NTT Program in Physics of Intelligence at Harvard University, where my work is centered around understanding the generalization behaviors of generative AI models. 
+I am currently a Research Scientist at the CBS-NTT Program in Physics of Intelligence at [Harvard University](https://cbs.fas.harvard.edu/), where my work is centered around understanding the generalization behaviors of generative AI models. 
 
-I obtained my Master's degree in Physics at Tokyo University, where I collaborated on the ATLAS experiment at CERN. 
-I completed my PhD in Computer Science at Kyoto University. My doctoral research bridged deep learning with probabilistic modeling, grounded in principles from social science and physics.  
+I obtained my Master's degree in Physics at University of Tokyo, where I collaborated on the [ATLAS](https://atlas.cern/) experiment at [CERN](https://home.cern/). 
+I completed my PhD in Computer Science at Kyoto University in 2022. My doctoral research bridged deep learning with probabilistic modeling, grounded in principles from social science and physics.  
 
 If you want to learn more about my research, have a look at my [publications](/publications/).  
 
