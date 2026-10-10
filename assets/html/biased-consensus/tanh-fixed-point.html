@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Round after round</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  .fp { --ink:#10202c; --muted:#6a7985; --rule:#dfe7ed; --serif:"Fraunces",Georgia,serif; --sans:"Source Sans 3",system-ui,sans-serif;
+        font-family:var(--sans); color:var(--ink); max-width:920px; margin:0 auto; font-size:17px; line-height:1.4; }
+  .fp * { box-sizing:border-box; }
+  .fp-wrap { display:grid; grid-template-columns:230px 1fr; gap:22px; align-items:end; }
+  @media (max-width:640px) { .fp-wrap { grid-template-columns:1fr; } }
+  .fp-left { display:flex; flex-direction:column; gap:14px; }
+  .fp-ctl label { display:block; font-size:18px; color:var(--muted); margin-bottom:6px; }
+  .fp-ctl .row { display:flex; align-items:center; gap:10px; }
+  .fp-range { -webkit-appearance:none; appearance:none; flex:1; height:8px; border-radius:999px; outline:none; margin:0; cursor:pointer; background:var(--rule); }
+  .fp-range::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:3px solid var(--ink); cursor:grab; box-shadow:0 1px 4px rgba(16,32,44,.25); }
+  .fp-range::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:#fff; border:3px solid var(--ink); cursor:grab; }
+  .fp-range:focus-visible { box-shadow:0 0 0 3px #fff, 0 0 0 5px #3288bd; }
+  .fp-ctl .val { font-family:var(--serif); font-weight:500; font-size:21px; line-height:1; font-variant-numeric:tabular-nums; min-width:2.2em; text-align:right; }
+  .fp-ratio { display:flex; align-items:center; gap:10px; font-size:18px; color:var(--muted); padding-top:8px; border-top:1px solid var(--rule); }
+  .fp-ratio .eq { color:#7a3e8f; font-size:20px; }
+  .fp-ratio b { font-family:var(--serif); font-weight:500; font-size:24px; color:#7a3e8f; font-variant-numeric:tabular-nums; }
+  .fp-frac { display:inline-flex; flex-direction:column; align-items:center; color:#7a3e8f; font-family:var(--serif); font-size:19px; line-height:1.15; vertical-align:middle; }
+  .fp-frac .num { padding:0 4px 1px; } .fp-frac .den { padding:1px 4px 0; border-top:1.5px solid #7a3e8f; }
+  .fp svg { display:block; width:100%; height:auto; }
+  .fp-note { font-size:19px; color:var(--muted); margin:10px 0 0; }
+  .fp-note b { color:var(--ink); font-weight:600; }
+</style>
+</head>
+<body>
+<figure class="fp" id="fp" style="margin:0">
+  <div class="fp-wrap">
+    <div class="fp-left">
+      <div class="fp-ctl"><label for="fp-lam">conformity λ</label><div class="row"><input class="fp-range" id="fp-lam" type="range" min="0" max="2" step="0.01" value="1.5"><span class="val" id="fp-lam-v">1.50</span></div></div>
+      <div class="fp-ctl"><label for="fp-T">sampling temperature T</label><div class="row"><input class="fp-range" id="fp-T" type="range" min="0.3" max="2" step="0.01" value="0.35"><span class="val" id="fp-T-v">0.35</span></div></div>
+      <div class="fp-ratio"><span class="fp-frac"><span class="num"><i>λρN</i></span><span class="den"><i>T</i></span></span><span class="eq">=</span><b id="fp-ratio">4.29</b></div>
+    </div>
+    <svg id="fp-svg" viewBox="0 0 660 300" aria-label="Four debate rounds side by side. In each, the population average m(t) enters along the bottom, meets the tanh curve, and leaves as m(t+1), which becomes the next round's input."></svg>
+  </div>
+  <p class="fp-note" id="fp-note"></p>
+</figure>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const GAM = 0.08, M0 = 0.04, K = 3;               // shared tilt γ, starting average, rounds shown
+  const SPEC = ['#5e4fa2','#3288bd','#66c2a5','#abdda4','#e6f598','#ffffbf','#fee08b','#fdae61','#f46d43','#d53e4f','#9e0142'].map(h => [1,3,5].map(k => parseInt(h.slice(k, k + 2), 16)));
+  const ramp = (u) => { u = Math.min(1, Math.max(0, u)) * 10; const k = Math.min(9, Math.floor(u)), f = u - k; return `rgb(${SPEC[k].map((v, j) => Math.round(v + (SPEC[k + 1][j] - v) * f)).join(',')})`; };
+  const col = m => ramp((1 - m) / 2);
+  const W = 660, H = 300, PW = 172, GAP = 40, L0 = 48, T = 72, B = 62;
+  const F = 'font-family="Source Sans 3, system-ui, sans-serif" font-size="20" fill="#6a7985"';
+  function draw() {
+    const lam = parseFloat($('fp-lam').value), Tm = parseFloat($('fp-T').value), s = lam / Tm;
+    $('fp-lam-v').textContent = lam.toFixed(2); $('fp-T-v').textContent = Tm.toFixed(2); $('fp-ratio').textContent = s.toFixed(2);
+    const f = m => Math.tanh((lam * m + GAM / 2) / Tm);
+    const ms = [M0]; for (let k = 0; k < K; k++) ms.push(f(ms[k]));
+    let o = `<defs><marker id="fp-arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round"/></marker></defs>`;
+    for (let k = 0; k < K; k++) {
+      const L = L0 + k * (PW + GAP), R = L + PW;
+      const px = m => L + (m + 1) / 2 * PW, py = v => T + (1 - v) / 2 * (H - T - B);
+      const mi = ms[k], mo = ms[k + 1];
+      o += `<text x="${(L + R) / 2}" y="${T - 14}" text-anchor="middle" font-family="Source Sans 3, system-ui, sans-serif" font-size="21" font-weight="600" fill="#10202c">round ${k + 1}</text>`;
+      o += `<line x1="${L}" y1="${py(0)}" x2="${R}" y2="${py(0)}" stroke="#dfe7ed"/><line x1="${px(0)}" y1="${T}" x2="${px(0)}" y2="${H - B}" stroke="#dfe7ed"/>`;
+      o += `<line x1="${L}" y1="${py(-1)}" x2="${R}" y2="${py(-1)}" stroke="#aab8c5"/><line x1="${px(-1)}" y1="${T}" x2="${px(-1)}" y2="${H - B}" stroke="#aab8c5"/>`;
+      for (const v of [-1, 0, 1]) { o += `<text x="${px(v)}" y="${H - B + 16}" text-anchor="middle" font-family="Source Sans 3, system-ui, sans-serif" font-size="16" fill="#9aa8b4">${v > 0 ? '+1' : v}</text>`; o += `<text x="${px(-1) - 7}" y="${py(v) + 6}" text-anchor="end" font-family="Source Sans 3, system-ui, sans-serif" font-size="16" fill="#9aa8b4">${v > 0 ? '+1' : v}</text>`; }
+      o += `<text x="${(L + R) / 2}" y="${H - B + 48}" text-anchor="middle" ${F}>this round, m(t)</text>`;
+      if (k === 0) o += `<text x="${L + 4}" y="${T - 44}" ${F}>↑ next round, m(t+1)</text>`;
+      o += `<line x1="${px(-1)}" y1="${py(-1)}" x2="${px(1)}" y2="${py(1)}" stroke="#b9c6d2" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+      let d = ''; for (let i = 0; i <= 60; i++) { const m = -1 + 2 * i / 60; d += (i ? 'L' : 'M') + px(m).toFixed(1) + ' ' + py(f(m)).toFixed(1) + ' '; }
+      o += `<path d="${d}" fill="none" stroke="#6a7985" stroke-width="2"/>`;
+      o += `<line x1="${px(mi)}" y1="${py(-1)}" x2="${px(mi)}" y2="${py(mo)}" stroke="${col(mi)}" stroke-width="2.2"/>`;
+      o += `<line x1="${px(mi)}" y1="${py(mo)}" x2="${px(-1)}" y2="${py(mo)}" stroke="${col(mo)}" stroke-width="2.2"/>`;
+      o += `<circle cx="${px(mi)}" cy="${py(mo)}" r="5" fill="${col(mo)}" stroke="#fff" stroke-width="1.5"/>`;
+      o += `<circle cx="${px(mi)}" cy="${py(-1)}" r="4" fill="${col(mi)}"/>`;
+      o += `<text x="${mi > 0.55 ? px(mi) - 8 : px(mi) + 8}" y="${py(-1) - 10}" text-anchor="${mi > 0.55 ? 'end' : 'start'}" ${F}>${mi >= 0 ? '+' : '−'}${Math.abs(mi).toFixed(2)}</text>`;
+      o += `<circle cx="${px(-1)}" cy="${py(mo)}" r="4" fill="${col(mo)}"/>`;
+      o += `<text x="${px(-1) + 9}" y="${mo > 0.8 ? py(mo) + 24 : py(mo) - 10}" ${F}>${mo >= 0 ? '+' : '−'}${Math.abs(mo).toFixed(2)}</text>`;
+      if (k < K - 1) o += `<path d="M${R + 4} ${py(mo)} L${R + GAP - 6} ${py(mo)}" stroke="${col(mo)}" stroke-width="2" fill="none" marker-end="url(#fp-arr)"/>`;
+    }
+    $('fp-svg').innerHTML = o;
+    const last = ms[K];
+    $('fp-note').innerHTML = s < 1
+      ? `The average goes in along the bottom, comes out along the left, and becomes the next round's input. λρN/T = <b>${s.toFixed(2)}</b>, below 1: the rounds settle at a small value instead of running away. From <b>+${M0.toFixed(2)}</b> the population reaches <b>${last >= 0 ? '+' : '−'}${Math.abs(last).toFixed(2)}</b> after ${K} rounds; the small bias stays small.`
+      : `The average goes in along the bottom, comes out along the left, and becomes the next round's input. λρN/T = <b>${s.toFixed(2)}</b>, above 1: each round pushes the average further out. From <b>+${M0.toFixed(2)}</b> the population reaches <b>${last >= 0 ? '+' : '−'}${Math.abs(last).toFixed(2)}</b> after ${K} rounds; the bias only chose the direction.`;
+  }
+  $('fp-lam').addEventListener('input', draw); $('fp-T').addEventListener('input', draw); draw();
+})();
+</script>
+</body>
+</html>
