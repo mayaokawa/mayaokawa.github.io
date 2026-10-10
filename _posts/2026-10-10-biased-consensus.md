@@ -64,15 +64,16 @@ related_posts: false
 > "The world, that understandable and lawful world, was slipping away."
 > — William Golding, *Lord of the Flies*
 
-Multi-agent LLM systems are now ubiquitous. Some of them will soon be making decisions for us, while still at the prototype stage: examples range from medical diagnosis ([Kim et al., 2024](https://arxiv.org/abs/2404.15155)) and legal judgment ([Jiang & Yang, 2025](https://www.mdpi.com/2079-8954/13/8/641)) to investment planning ([Yu et al., 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/f7ae4fe91d96f50abc2211f09b6a7e49-Abstract-Conference.html)) and political decisions ([Fisher et al., 2025](https://aclanthology.org/2025.acl-long.328/)). They show that collaboration improves performance. The same collaboration can go wrong. In the [OpenAI Hugging Face incident](https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/), the agents worked together to cheat and hack.
+Multi-agent LLM systems are now ubiquitous. They are starting to be used for decision making. Examples of such prototypes include medical diagnosis ([Kim et al., 2024](https://arxiv.org/abs/2404.15155)), legal judgment ([Jiang & Yang, 2025](https://www.mdpi.com/2079-8954/13/8/641)), investment planning ([Yu et al., 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/f7ae4fe91d96f50abc2211f09b6a7e49-Abstract-Conference.html)), and political decisions ([Fisher et al., 2025](https://aclanthology.org/2025.acl-long.328/)). They show that collaboration improves performance. The same collaboration can go wrong. In the [OpenAI Hugging Face incident](https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/), the agents worked together to cheat and hack.
 
 This paper turns to a less explored axis of this problem: fairness. **Can a group of LLM agents make unfair decisions when no single agent does?** This question is inspired by two books.
+
+<iframe class="post-embed" src="/assets/html/biased-consensus/bookshelf.html" title="The two books behind the question" style="width:100%; height:480px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
 In [*Eichmann in Jerusalem*](https://www.penguinrandomhouse.com/books/320983/eichmann-in-jerusalem-by-hannah-arendt/9781101007167) (1963), Hannah Arendt reported on the trial of Adolf Eichmann, one of the organizers of the Holocaust, and coined the phrase "the banality of evil." What she saw in the courtroom was not a monster but an ordinary, dutiful official who had never asked what his work was part of. Her point was that great evil does not need evil people: it can be carried out by ordinary people doing their jobs without thinking.
 
 William Golding wrote his novel [*Lord of the Flies*](https://www.faber.co.uk/product/9780571056866-lord-of-the-flies/) (1954) as a rebuttal to [*The Coral Island*](https://www.britannica.com/topic/The-Coral-Island) (1857), R. M. Ballantyne's adventure story in which three boys stranded on a desert island cooperate and live happily, with every danger coming from outside. Golding did not believe it. In his novel, the boys split into rival groups over small disputes, fight, and end up killing one another.
 
-<iframe class="post-embed" src="/assets/html/biased-consensus/bookshelf.html" title="The two books behind the question" style="width:100%; height:480px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
 Which view should we take of a society of LLM agents, Ballantyne's or Golding's? As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. stocks. U.S. stocks are about 44% of the world's market value, but the agents' first-round picks are already more than 90% U.S. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature.
 
@@ -110,7 +111,7 @@ With the Ising model, we can predict how the population's average opinion \\(m\\
 
 <div class="eq-click" id="eq-mf" role="button" tabindex="0" aria-expanded="false" aria-controls="deriv">
 $$
-m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#7a3e8f}{\lambda\,\rho N}\, m(t) + \gamma/2}{\textcolor{#7a3e8f}{T}}\Bigg) \;+\; \eta(t)
+m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#2b5f86}{\lambda\,\rho N}\, m(t) + \gamma/2}{\textcolor{#2b5f86}{T}}\Bigg) \;+\; \eta(t)
 $$
 </div>
 <div class="eq-note">\(\rho\): the fraction of the population each agent chats with, so \(\rho N\) is the number of peers</div>
@@ -125,19 +126,19 @@ $$ \langle \sigma_i \rangle \;=\; 2p_i - 1 \;=\; \frac{e^{f_i/T} - e^{-f_i/T}}{e
 <p><b>The one approximation.</b> Agent \(i\) chats with about \(\rho N\) peers. If who chats with whom is not strongly correlated with what anyone thinks, then a sum of \(\rho N\) opinions is, on average, just \(\rho N\) times the population's average opinion \(m\):</p>
 $$ \sum_{j \in \text{peers}(i)} \sigma_j \;\approx\; \rho N \, m(t) $$
 <p>Substituting this, and replacing each agent's own tilt \(\gamma_i\) by the population's average tilt \(\gamma\), makes every agent's rule the same, so averaging it over all agents gives the rule for \(m\) itself:</p>
-$$ m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#7a3e8f}{\lambda\,\rho N}\, m(t) + \gamma/2}{\textcolor{#7a3e8f}{T}}\Bigg) \;+\; \eta(t) $$
+$$ m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#2b5f86}{\lambda\,\rho N}\, m(t) + \gamma/2}{\textcolor{#2b5f86}{T}}\Bigg) \;+\; \eta(t) $$
 <p>The \(\eta\) term is what the approximation leaves out: each agent's sum differs a little from \(\rho N\, m\), and with only \(\rho N\) terms in the sum that difference is of order \(\dfrac{1}{\sqrt{\rho N}}\). For a thousand agents it is negligible; for ten it is not, which is why small populations show a crossover rather than a sharp transition.</p>
 </div>
 
-The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#7a3e8f}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity \\(\lambda = 1.5\\) and \\(T = 0.35\\), a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three; raise \\(T\\) past \\(1.5\\) and three rounds later the average is still below 0.1. This is the mechanism of the phase transition.
+The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#2b5f86}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity \\(\lambda = 1.5\\) and \\(T = 0.35\\), a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three; raise \\(T\\) past \\(1.5\\) and three rounds later the average is still below 0.1. This is the mechanism of the phase transition.
 
-<iframe class="post-embed" src="/assets/html/biased-consensus/tanh-fixed-point.html" title="Interactive figure: the population average through the tanh curve, round after round" style="width:100%; height:560px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
+<iframe class="post-embed" src="/assets/html/biased-consensus/tanh-fixed-point.html" title="Interactive figure: the population average through the tanh curve, round after round" style="width:min(94vw, 920px); margin-left:calc(50% - min(47vw, 460px)); height:560px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
 So the population locks into a biased consensus when
 
 <div class="post-eq">
 $$
-\textcolor{#7a3e8f}{\frac{\lambda\,\rho N}{T}} \;\gtrsim\; 1
+\textcolor{#2b5f86}{\frac{\lambda\,\rho N}{T}} \;\gtrsim\; 1
 $$
 </div>
 
