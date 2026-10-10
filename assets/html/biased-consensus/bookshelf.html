@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root { --ink:#10202c; --muted:#66757f; --rule:#dfe7ed; --sky:#eaf2f7; --accent:#2b5f86; }
+body { margin:0; background:#fff; color:var(--ink); font-family:"Source Sans 3",system-ui,sans-serif; font-size:19px; line-height:1.6; }
+.shelf { display:flex; flex-wrap:wrap; justify-content:center; gap:0 72px; margin:28px 0 30px; padding:84px 20px 18px; background:var(--sky); border-radius:16px; }
+.shelf-col { display:flex; flex-direction:column; align-items:center; text-align:center; width:230px; }
+.book3d { position:relative; width:136px; height:208px; perspective:1100px; cursor:pointer; transition:transform .7s cubic-bezier(.2,.7,.2,1); }
+.book3d.open { transform:translateX(68px) scale(1.3); z-index:2; }
+.book3d { transform-origin:50% 100%; }
+.book3d .page { position:absolute; inset:0; background:#fdfcf8; border-radius:2px 4px 4px 2px; box-shadow:2px 4px 10px rgba(16,32,44,.22), inset 8px 0 10px -8px rgba(0,0,0,.3); padding:12px 10px 10px 15px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center; text-align:left; }
+.book3d .pq { font-family:Fraunces,serif; font-weight:300; font-style:italic; font-size:14px; line-height:1.32; color:var(--ink); }
+.book3d .pc { position:absolute; left:15px; bottom:12px; font-size:11px; color:var(--muted); }
+.book3d .cover { position:absolute; inset:0; transform-origin:left center; transform:rotateY(0deg); transition:transform .7s cubic-bezier(.2,.7,.2,1); transform-style:preserve-3d; }
+.book3d .cover img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; border-radius:2px 4px 4px 2px; box-shadow:2px 4px 10px rgba(16,32,44,.28); backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+.book3d .inside { position:absolute; inset:0; background:#f7f4ec; border-radius:4px 2px 2px 4px; transform:rotateY(180deg); backface-visibility:hidden; -webkit-backface-visibility:hidden; box-shadow:-2px 4px 10px rgba(16,32,44,.18), inset -8px 0 10px -8px rgba(0,0,0,.25); display:flex; flex-direction:column; justify-content:center; align-items:flex-start; padding:12px 12px 12px 14px; box-sizing:border-box; text-align:left; }
+.book3d:hover .cover { transform:rotateY(-14deg); }
+.book3d.open .cover, .book3d.open:hover .cover { transform:rotateY(-180deg); }
+.book3d:focus-visible { outline:3px solid var(--accent); outline-offset:4px; border-radius:4px; }
+.shelf-t { font-family:Fraunces,serif; font-weight:500; font-size:19px; margin-top:16px; position:relative; z-index:3; line-height:1.2; color:var(--ink) !important; text-decoration:none !important; }
+.shelf-t:hover { text-decoration:underline !important; }
+.shelf-a { font-size:16px; color:var(--muted); margin-top:3px; }
+.shelf-hint { flex-basis:100%; text-align:center; font-size:14px; color:var(--muted); margin-top:18px; }
+.shelf { gap:0 20px; }
+.shelf-col { width:46%; }
+.book3d { width:118px; height:180px; }
+.book3d .pq { font-size:11px; }
+</style>
+</head>
+<body>
+<div class="shelf"><div class="shelf-col"><div class="book3d" data-href="https://www.penguinrandomhouse.com/books/320983/eichmann-in-jerusalem-by-hannah-arendt/9781101007167" role="button" tabindex="0" aria-label="Eichmann in Jerusalem: open the book, then click again to visit the publisher page"><div class="page"><div class="pq">and that the many … were and still are terribly and terrifyingly normal.”</div><div class="pc">Epilogue</div></div><div class="cover"><img src="../../img/blog/biased-consensus/cover-eichmann.jpg" alt="Cover of Eichmann in Jerusalem"><div class="inside"><div class="pq">“The trouble with Eichmann was precisely that so many were like him,</div></div></div></div><a class="shelf-t" href="https://www.penguinrandomhouse.com/books/320983/eichmann-in-jerusalem-by-hannah-arendt/9781101007167">Eichmann in Jerusalem</a><span class="shelf-a">Hannah Arendt, 1963</span></div><div class="shelf-col"><div class="book3d" data-href="https://www.faber.co.uk/product/9780571056866-lord-of-the-flies/" role="button" tabindex="0" aria-label="Lord of the Flies: open the book, then click again to visit the publisher page"><div class="page"><div class="pq">was slipping away.”</div><div class="pc">Chapter 5</div></div><div class="cover"><img src="../../img/blog/biased-consensus/cover-lotf.jpg" alt="Cover of Lord of the Flies"><div class="inside"><div class="pq">“The world, that understandable and lawful world,</div></div></div></div><a class="shelf-t" href="https://www.faber.co.uk/product/9780571056866-lord-of-the-flies/">Lord of the Flies</a><span class="shelf-a">William Golding, 1954</span></div><div class="shelf-hint">click a book to open it</div></div>
+<script>(function(){document.querySelectorAll(".book3d").forEach(function(b){function act(){if(b.classList.contains("open")){window.open(b.getAttribute("data-href"),"_blank","noopener");}else{document.querySelectorAll(".book3d.open").forEach(function(x){x.classList.remove("open")});b.classList.add("open");}}b.addEventListener("click",act);b.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();act();}});});})();</script>
+</body>
+</html>
