@@ -25,6 +25,19 @@ related_posts: false
   .post .post-content b {
     font-weight: 600;
   }
+  .eq-click { cursor: pointer; border-radius: 12px; transition: background 0.15s; }
+  .eq-click:hover,
+  .eq-click[aria-expanded="true"] { background: #eaf2f7; }
+  .eq-click mjx-container { pointer-events: none; outline: none !important; }
+  .eq-note { text-align: center; font-size: 15px; color: #66757f; margin: -10px 0 2px; }
+  .deriv-hint { text-align: center; font-size: 15px; color: #66757f; margin: 2px 0 18px; }
+  html[data-theme="dark"] .eq-note { color: #8a99a5; }
+  .deriv { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; background: #f6f9fb; border-radius: 14px; padding: 0 24px; margin: 0 0 24px; }
+  .deriv.on { max-height: 2400px; padding: 6px 24px 8px; }
+  html[data-theme="dark"] .eq-click:hover,
+  html[data-theme="dark"] .eq-click[aria-expanded="true"] { background: #1b2a36; }
+  html[data-theme="dark"] .deriv { background: #16222c; }
+  html[data-theme="dark"] .deriv-hint { color: #8a99a5; }
   .fig4-row {
     display: flex;
     flex-wrap: wrap;
@@ -51,7 +64,7 @@ related_posts: false
 > "The world, that understandable and lawful world, was slipping away."
 > — William Golding, *Lord of the Flies*
 
-Multi-agent LLM systems are now ubiquitous. Some of them will soon be making decisions for us, while still at the prototype stage: examples range from medical diagnosis ([Kim et al., 2024](https://arxiv.org/abs/2404.15155)) and legal judgment ([Jiang & Yang, 2025](https://www.mdpi.com/2079-8954/13/8/641)) to investment planning ([Yu et al., 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/f7ae4fe91d96f50abc2211f09b6a7e49-Abstract-Conference.html)) and political decision support ([Fisher et al., 2025](https://aclanthology.org/2025.acl-long.328/)). These studies found that collaboration improves performance. The same collaboration can go wrong. In the [OpenAI Hugging Face incident](https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/), the agents worked together to cheat and hack.
+Multi-agent LLM systems are now ubiquitous. Some of them will soon be making decisions for us, while still at the prototype stage: examples range from medical diagnosis ([Kim et al., 2024](https://arxiv.org/abs/2404.15155)) and legal judgment ([Jiang & Yang, 2025](https://www.mdpi.com/2079-8954/13/8/641)) to investment planning ([Yu et al., 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/f7ae4fe91d96f50abc2211f09b6a7e49-Abstract-Conference.html)) and political decisions ([Fisher et al., 2025](https://aclanthology.org/2025.acl-long.328/)). They show that collaboration improves performance. The same collaboration can go wrong. In the [OpenAI Hugging Face incident](https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/), the agents worked together to cheat and hack.
 
 This paper turns to a less explored axis of this problem: fairness. **Can a group of LLM agents make unfair decisions when no single agent does?** This question is inspired by two books.
 
@@ -61,7 +74,7 @@ William Golding wrote his novel [*Lord of the Flies*](https://www.faber.co.uk/pr
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/bookshelf.html" title="The two books behind the question" style="width:100%; height:480px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
-Which view should we take of a society of LLM agents, Ballantyne's or Golding's? As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. and tech stocks: U.S. stocks are about 44% of the world's stock market value, but the agents' first-round picks are already more than 90% U.S. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature.
+Which view should we take of a society of LLM agents, Ballantyne's or Golding's? As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. stocks. U.S. stocks are about 44% of the world's market value, but the agents' first-round picks are already more than 90% U.S. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature.
 
 <figure class="post-fig" style="margin:28px auto; max-width:700px;">
   <img src="/assets/img/blog/biased-consensus/fig1a.png" alt="Share of U.S. stocks over debate rounds and versus sampling temperature" style="width:100%; height:auto;">
@@ -79,7 +92,7 @@ To understand why this happens, let us do what a physicist would do and start wi
 2. **Peer pressure.** The more peers chose \\(+1\\) last round, the more an agent leans toward \\(+1\\). How strongly it follows the crowd is its conformity, \\(\lambda\\).
 3. **Chance.** An agent draws its answer at random, weighted toward the option it leans to. How much randomness there is depends on a temperature \\(T\\), which for an LLM is literally the sampling temperature.
 
-That is the [Ising model](https://doi.org/10.1007/BF02980577), proposed in 1920 to explain the ferromagnetic phase transition: iron loses its magnetism when heated above about 770 °C, the Curie temperature, and regains it when cooled below. Each atom in a piece of iron carries a tiny magnet, a spin, that points up or down. An outside field nudges each spin, neighboring spins pull each other into line, and heat flips them at random. Below the Curie temperature the pull wins and the spins line up; above it, heat wins. Replacing "spin" with "opinion", [Weidlich](https://doi.org/10.1111/j.2044-8317.1971.tb00470.x) read the same equations as a model of opinion formation in human societies in 1971. Here we reread it as a model of an LLM society. So everything is measurable, and every parameter is a knob we can control.
+That is the [Ising model](https://doi.org/10.1007/BF02980577), proposed in 1920 to explain the ferromagnetic phase transition: iron loses its magnetism when heated above about 770 °C, the Curie temperature, and regains it when cooled below. Each atom in a piece of iron carries a tiny magnet, a spin, that points up or down. An outside field nudges each spin, neighboring spins pull each other into line, and heat flips them at random. Below the Curie temperature the pull wins and the spins line up; above it, heat wins. Replacing "spin" with "opinion", [Weidlich](https://doi.org/10.1111/j.2044-8317.1971.tb00470.x) read the same equations as a model of opinion formation in human societies in 1971. Here we reread it as a model of an LLM society. So almost everything is measurable, and every parameter is a knob we can control.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/analogy.html" title="A lattice of spins beside a panel of agents, with the mapping between the two" style="width:100%; height:660px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
@@ -93,17 +106,16 @@ Here is the Ising model simulating a debate about dogs versus cats among a few d
 
 ## How a small bias runs away
 
-With the Ising model, we can predict how the population's average opinion \\(m\\) changes from one round to the next (\\(\rho\\) is the fraction of the population each agent chats with, so \\(\rho N\\) is the number of peers):
+With the Ising model, we can predict how the population's average opinion \\(m\\) changes from one round to the next:
 
-<div class="post-eq">
+<div class="eq-click" id="eq-mf" role="button" tabindex="0" aria-expanded="false" aria-controls="deriv">
 $$
 m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#7a3e8f}{\lambda\,\rho N}\, m(t) + \gamma/2}{\textcolor{#7a3e8f}{T}}\Bigg) \;+\; \eta(t)
 $$
 </div>
-
-<details class="post-deriv" style="margin:0 0 20px;">
-<summary style="cursor:pointer;">Where the equation comes from</summary>
-<div style="padding:8px 0 0;">
+<div class="eq-note">\(\rho\): the fraction of the population each agent chats with, so \(\rho N\) is the number of peers</div>
+<div class="deriv-hint" id="deriv-hint">click the equation to see where it comes from</div>
+<div class="deriv" id="deriv">
 <p><b>Start with one agent.</b> Each round, agent \(i\) adds up the opinions \(\sigma_j = \pm 1\) of the peers it chats with, weights the sum by its conformity \(\lambda\), and adds its own tilt \(\gamma_i/2\). Call the total \(f_i\): a score in favor of \(+1\) (and \(-f_i\) in favor of \(-1\)).</p>
 $$ f_i \;=\; \lambda \sum_{j \in \text{peers}(i)} \sigma_j \;+\; \gamma_i/2 $$
 <p><b>Sampling at temperature T.</b> The agent does not pick the higher score; it samples. Sampling two options with scores \(\pm f_i\) at temperature \(T\) means choosing \(+1\) with probability</p>
@@ -116,9 +128,8 @@ $$ \sum_{j \in \text{peers}(i)} \sigma_j \;\approx\; \rho N \, m(t) $$
 $$ m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#7a3e8f}{\lambda\,\rho N}\, m(t) + \gamma/2}{\textcolor{#7a3e8f}{T}}\Bigg) \;+\; \eta(t) $$
 <p>The \(\eta\) term is what the approximation leaves out: each agent's sum differs a little from \(\rho N\, m\), and with only \(\rho N\) terms in the sum that difference is of order \(\dfrac{1}{\sqrt{\rho N}}\). For a thousand agents it is negligible; for ten it is not, which is why small populations show a crossover rather than a sharp transition.</p>
 </div>
-</details>
 
-The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What matters is how steep the curve is near \\(m = 0\\): \\(\textcolor{#7a3e8f}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity \\(\lambda = 1.5\\) and \\(T = 0.35\\), a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three; raise \\(T\\) past \\(1.5\\) and three rounds later the average is still below 0.1. This is the mechanism of the phase transition.
+The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#7a3e8f}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity \\(\lambda = 1.5\\) and \\(T = 0.35\\), a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three; raise \\(T\\) past \\(1.5\\) and three rounds later the average is still below 0.1. This is the mechanism of the phase transition.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/tanh-fixed-point.html" title="Interactive figure: the population average through the tanh curve, round after round" style="width:100%; height:560px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
@@ -134,7 +145,7 @@ This is a phase transition, the same one iron goes through at its Curie temperat
 
 ## Does it happen for real?
 
-Now we test the theory in controlled experiments with real LLMs. We use the **Implicit Bias** task, taken from [Borah and Mihalcea (2024)](https://aclanthology.org/2024.findings-emnlp.545/). Each agent reads a short scenario with two chores, a leadership task and a support task, say `coordinating the security detail` and `arranging the food and beverages`, and assigns the second one to either Jane or John. The answer should always be neutral, 50% Jane and 50% John, but LLMs have a small bias toward Jane, assigning the support task to the female name. Adjusting the `logit bias` parameter of the OpenAI API, we nudge each agent toward answering John. The result is the phase diagram on the right. With a weak nudge and hot sampling (bottom left) the group stays split between Jane and John; with a stronger nudge or colder sampling (upper right) it locks onto one name. Where the boundary between the two lies matches the theory on the left: the smaller the bias, the colder the sampling has to be for a consensus to form.
+Now we test the theory in controlled experiments with real LLMs. We use the **Implicit Bias** task, taken from [Borah and Mihalcea (2024)](https://aclanthology.org/2024.findings-emnlp.545/). Each agent reads a short scenario with two chores, a leadership task and a support task, say `coordinating the security detail` and `arranging the food and beverages`, and assigns the second one to either Jane or John. The answer should always be neutral, 50% Jane and 50% John, but LLMs have a small bias toward Jane, assigning the support task to the female name. Adjusting the `logit bias` parameter of the OpenAI API, we nudge each agent toward answering John. The result is the phase diagram on the right. With a weak nudge and a hot sampling temperature (bottom left) the group stays split between Jane and John; with a stronger nudge or a colder sampling temperature (upper right) it locks onto one name. Where the boundary between the two lies matches the theory on the left: the smaller the bias, the colder the sampling has to be for a consensus to form.
 
 <figure class="post-fig" style="margin:28px auto; max-width:600px;">
   <img src="/assets/img/blog/biased-consensus/fig2bd.png" alt="Phase diagrams: theory prediction and GPT-4.1 Nano experiment on the Implicit Bias task" style="width:100%; height:auto;">
@@ -144,7 +155,7 @@ Now we test the theory in controlled experiments with real LLMs. We use the **Im
 
 ## Key control knobs
 
-The model also tells us where to intervene. It suggests three ways: lower the conformity \\(\lambda\\), add randomness, or thin the interaction so each agent chats with fewer peers. Below are four implementations.
+The model also tells us where to intervene. It suggests three ways to prevent a biased consensus: lower the conformity \\(\lambda\\), add randomness, or sparsify the interaction. Below are four implementations.
 
 <figure class="post-fig fig4-row" style="margin:28px 0;">
   <img src="/assets/img/blog/biased-consensus/fig4a.png" alt="(a) Final consensus under sparse interaction">
@@ -209,5 +220,26 @@ So whose side should we take, Ballantyne's or Golding's? Neither, because the qu
       f.addEventListener("load", function () { watch(f); });
       if (f.contentDocument && f.contentDocument.readyState === "complete") watch(f);
     });
+
+    var e = document.getElementById("eq-mf"),
+      d = document.getElementById("deriv"),
+      h = document.getElementById("deriv-hint");
+    if (e && d) {
+      var toggle = function () {
+        var on = !d.classList.contains("on");
+        d.classList.toggle("on", on);
+        e.setAttribute("aria-expanded", on);
+        h.textContent = on
+          ? "click the equation again to hide the derivation"
+          : "click the equation to see where it comes from";
+      };
+      e.addEventListener("click", toggle);
+      e.addEventListener("keydown", function (k) {
+        if (k.key === "Enter" || k.key === " ") {
+          k.preventDefault();
+          toggle();
+        }
+      });
+    }
   })();
 </script>
