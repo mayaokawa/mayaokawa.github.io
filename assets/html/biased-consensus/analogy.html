@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#fff; }
+  .an { font-family:"Source Sans 3",system-ui,sans-serif; color:#10202c; max-width:920px; margin:0 auto; font-size:19px; }
+  .an svg { display:block; width:100%; height:auto; overflow:visible; }
+  .an .t { font-family:"Fraunces",Georgia,serif; font-weight:500; font-size:26px; fill:#10202c; }
+  .an .l { font-size:19px; fill:#10202c; }
+  .an .m { font-size:19px; fill:#6a7985; }
+  .an .g { font-family:"Fraunces",Georgia,serif; font-style:italic; font-size:22px; fill:#10202c; letter-spacing:0.08em; }
+</style></head>
+<body>
+<figure class="an" style="margin:0">
+<svg viewBox="0 0 920 610" id="an" aria-label="A lattice of spins beside a panel of agents, with the three parameters that map between them"></svg>
+</figure>
+<script>
+(function () {
+  const svg = document.getElementById('an');
+  const UP = '#3288bd', DOWN = '#d53e4f';
+
+  // a small perspective camera: the lattice lies in the x–z plane, y points up
+  function camera({ cx, cy, f, dist, pitch, yaw }) {
+    const cy_ = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    return (x, y, z) => {
+      const X = x * cy_ - z * sy, Z0 = x * sy + z * cy_;
+      const Y = y * cp + Z0 * sp, Z = -y * sp + Z0 * cp + dist;
+      const s = f / Z;
+      return [cx + X * s, cy - Y * s, s];
+    };
+  }
+  const N = 5, half = (N - 1) / 2;
+  const pattern = [1,1,1,-1,1, 1,1,-1,1,1, 1,1,1,1,1, -1,1,1,1,1, 1,1,1,-1,1];
+
+  function floor(P) {
+    let o = '';
+    for (let g = 0; g < N; g++) {
+      const a = P(g - half, 0, -half), b = P(g - half, 0, half), c = P(-half, 0, g - half), d = P(half, 0, g - half);
+      o += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#aab8c5" stroke-width="1.1"/><line x1="${c[0]}" y1="${c[1]}" x2="${d[0]}" y2="${d[1]}" stroke="#aab8c5" stroke-width="1.1"/>`;
+    }
+    return o;
+  }
+  function sortedSites(P) {
+    const sites = [];
+    for (let i = 0; i < N * N; i++) { const x = (i % N) - half, z = Math.floor(i / N) - half; const b = P(x, 0, z); sites.push({ i, x, z, b }); }
+    return sites.sort((p, q) => p.b[2] - q.b[2]);   // far first
+  }
+  // sizes are in world units and scale with depth through s = px per world unit at that point
+  function spin(P, x, z, up, H) {
+    const b = P(x, 0, z), t = P(x, H, z), s = b[2];
+    const col = up ? UP : DOWN, w = 0.085 * s, hw = 0.15 * s, hl = 0.2 * s, R = 0.14 * s;
+    const dx = t[0] - b[0], dy = t[1] - b[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+    const c = [b[0] + ux * R * 0.55, b[1] + uy * R * 0.55];   // atom sits on the site, slightly raised
+    const half = L * 0.5;                                      // arrow of length L centered on the atom
+    const start = [c[0] - ux * half, c[1] - uy * half], tip = [c[0] + ux * half, c[1] + uy * half];
+    const hx = tip[0] - ux * hl, hy = tip[1] - uy * hl;
+    const shadow = `<ellipse cx="${b[0]}" cy="${b[1] + 0.02 * s}" rx="${0.22 * s}" ry="${0.09 * s}" fill="#9fb2c2" fill-opacity="0.35"/>`;
+    const atom = `<circle cx="${c[0]}" cy="${c[1]}" r="${R}" fill="url(#atomGrad)"/>`;
+    const shaft = `<polygon points="${start[0] + nx * w / 2},${start[1] + ny * w / 2} ${hx + nx * w / 2},${hy + ny * w / 2} ${hx - nx * w / 2},${hy - ny * w / 2} ${start[0] - nx * w / 2},${start[1] - ny * w / 2}" fill="${col}"/>`;
+    const head = `<polygon points="${tip[0]},${tip[1]} ${hx + nx * hw},${hy + ny * hw} ${hx - nx * hw},${hy - ny * hw}" fill="${col}"/>`;
+    const arrow = `<g transform="rotate(${up ? 0 : 180} ${c[0]} ${c[1]})">${shaft}${head}</g>`;
+    return shadow + `<g transform="rotate(${up ? 0 : 180} ${c[0]} ${c[1]})">${shaft}</g>` + atom + `<g transform="rotate(${up ? 0 : 180} ${c[0]} ${c[1]})">${head}</g>`;
+  }
+  function agent(P, x, z, up) {
+    const b = P(x, 0, z), s = b[2];
+    const col = up ? UP : DOWN, body = '#6b8299', dark = '#4d6275', face = '#f4f7fa';
+    // a squat robot: wide rounded body, big head with a visor, two little ears
+    const bw = 0.42 * s, bh = 0.2 * s, hw = 0.4 * s, hh = 0.3 * s;
+    const bx = b[0] - bw / 2, by = b[1] - bh, hx = b[0] - hw / 2, hy = by - hh + 0.02 * s;
+    let o = `<ellipse cx="${b[0]}" cy="${b[1] + 0.02 * s}" rx="${0.26 * s}" ry="${0.09 * s}" fill="#9fb2c2" fill-opacity="0.35"/>`;
+    o += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${0.08 * s}" fill="${body}"/>`;
+    o += `<rect x="${hx}" y="${hy}" width="${hw}" height="${hh}" rx="${0.11 * s}" fill="${body}"/>`;
+    o += `<rect x="${hx - 0.05 * s}" y="${hy + 0.1 * s}" width="${0.06 * s}" height="${0.1 * s}" rx="${0.03 * s}" fill="${dark}"/><rect x="${hx + hw - 0.01 * s}" y="${hy + 0.1 * s}" width="${0.06 * s}" height="${0.1 * s}" rx="${0.03 * s}" fill="${dark}"/>`;
+    o += `<rect x="${hx + 0.07 * s}" y="${hy + 0.08 * s}" width="${hw - 0.14 * s}" height="${0.14 * s}" rx="${0.06 * s}" fill="${face}"/>`;
+    o += `<circle cx="${b[0] - 0.07 * s}" cy="${hy + 0.15 * s}" r="${0.028 * s}" fill="${dark}"/><circle cx="${b[0] + 0.07 * s}" cy="${hy + 0.15 * s}" r="${0.028 * s}" fill="${dark}"/>`;
+    o += `<path d="M${b[0] - 0.04 * s} ${hy + 0.19 * s} Q${b[0]} ${hy + 0.225 * s} ${b[0] + 0.04 * s} ${hy + 0.19 * s}" fill="none" stroke="${dark}" stroke-width="${0.016 * s}" stroke-linecap="round"/>`;
+    o += `<line x1="${b[0]}" y1="${hy}" x2="${b[0]}" y2="${hy - 0.08 * s}" stroke="${dark}" stroke-width="${0.024 * s}"/><circle cx="${b[0]}" cy="${hy - 0.1 * s}" r="${0.035 * s}" fill="${col}"/>`;
+    // bubble straight above, tail down to the antenna
+    const w = 0.56 * s, h = 0.4 * s, r = 0.12 * s, cx = b[0], cy = hy - 0.1 * s - 0.08 * s - h / 2, tail = 0.08 * s;
+    o += `<path d="M${cx - w / 2 + r} ${cy - h / 2} H${cx + w / 2 - r} Q${cx + w / 2} ${cy - h / 2} ${cx + w / 2} ${cy - h / 2 + r} V${cy + h / 2 - r} Q${cx + w / 2} ${cy + h / 2} ${cx + w / 2 - r} ${cy + h / 2} H${cx + tail} L${cx} ${cy + h / 2 + 0.07 * s} L${cx - tail} ${cy + h / 2} H${cx - w / 2 + r} Q${cx - w / 2} ${cy + h / 2} ${cx - w / 2} ${cy + h / 2 - r} V${cy - h / 2 + r} Q${cx - w / 2} ${cy - h / 2} ${cx - w / 2 + r} ${cy - h / 2} Z" fill="${col}"/>`;
+    o += `<text x="${cx}" y="${cy + 0.09 * s}" text-anchor="middle" font-size="${0.24 * s}" font-weight="600" fill="#fff" font-family="Source Sans 3, sans-serif">${up ? 'dog' : 'cat'}</text>`;
+    return o;
+  }
+
+  const camL = camera({ cx: 230, cy: 232, f: 600, dist: 9.4, pitch: 0.6, yaw: 0.5 });
+  const camR = camera({ cx: 690, cy: 215, f: 520, dist: 7.6, pitch: 0.6, yaw: 0.5 });
+  let o = '';
+  o += `<text x="246" y="40" text-anchor="middle" class="t">A magnet</text>` + `<g transform="translate(118 6) scale(1.5)"><path d="M6 26 V12 a10 10 0 0 1 20 0 V26 h-7 V13 a3 3 0 0 0 -6 0 V26 Z" fill="#d53e4f"/><rect x="6" y="20" width="7" height="6" fill="#3288bd"/><rect x="19" y="20" width="7" height="6" fill="#3288bd"/><rect x="6" y="19" width="7" height="2" fill="#f3f6f9"/><rect x="19" y="19" width="7" height="2" fill="#f3f6f9"/></g>`;
+  o += `<text x="690" y="40" text-anchor="middle" class="t">A debate</text>`;
+  o += floor(camL);
+  for (const st of sortedSites(camL)) o += spin(camL, st.x, st.z, pattern[st.i] > 0, 0.95);
+  // debate: everyone sees everyone, so draw the agents on a ring and connect every pair
+  const NA = 8, ring = [];
+  for (let k = 0; k < NA; k++) { const th = Math.PI * 2 * k / NA + 0.3; ring.push({ k, x: 2.1 * Math.cos(th), z: 2.1 * Math.sin(th), up: [1,1,-1,1,1,1,-1,1][k] > 0 }); }
+  const camN = camera({ cx: 690, cy: 248, f: 620, dist: 9.2, pitch: 0.6, yaw: 0.5 });
+  let edges = '';
+  for (let i = 0; i < NA; i++) for (let j = i + 1; j < NA; j++) { const a = camN(ring[i].x, 0, ring[i].z), b = camN(ring[j].x, 0, ring[j].z); edges += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#aab8c5" stroke-width="0.9" stroke-opacity="0.75"/>`; }
+  o += edges;
+  for (const r of ring.map(r => ({ ...r, d: camN(r.x, 0, r.z)[2] })).sort((p, q) => p.d - q.d)) o += agent(camN, r.x, r.z, r.up);
+  o += `<text x="230" y="410" text-anchor="middle" class="m">each atom's spin points up ↑ or down ↓</text><text x="230" y="434" text-anchor="middle" class="m">and feels its neighbors</text><text x="690" y="410" text-anchor="middle" class="m">each agent answers dog or cat</text><text x="690" y="434" text-anchor="middle" class="m">and sees everyone else's answer</text>`;
+  const rows = [
+    ['external field', 'h', 'local bias', 'γ', 'a small tilt toward one side, shared by all'],
+    ['coupling', 'J', 'conformity', 'λ', 'how hard each one pulls on its neighbors'],
+    ['temperature', 'T', 'sampling temperature', 'T', 'how often the dice overrule the pull'],
+  ];
+  rows.forEach((r, i) => {
+    const y = 492 + i * 46;
+    o += `<text x="268" y="${y}" text-anchor="end" class="l">${r[0]} <tspan class="g">${r[1]}</tspan></text>`;
+    o += `<text x="460" y="${y - 1}" text-anchor="middle" class="m" font-size="17">${r[4]}</text>`;
+    o += `<text x="640" y="${y}" text-anchor="start" class="l">${r[2]} <tspan class="g">${r[3]}</tspan></text>`;
+  });
+  o = `<defs><radialGradient id="atomGrad" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#f3f6f9"/><stop offset="0.6" stop-color="#c5d2dc"/><stop offset="1" stop-color="#8fa3b4"/></radialGradient></defs>` + o;
+  svg.innerHTML = o;
+})();
+</script></body></html>
