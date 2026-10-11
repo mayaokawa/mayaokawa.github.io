@@ -66,7 +66,7 @@ related_posts: false
 
 Multi-agent LLM systems are now ubiquitous. They are starting to be used for decision making. Examples of such prototypes include medical diagnosis ([Kim et al., 2024](https://arxiv.org/abs/2404.15155)), legal judgment ([Jiang & Yang, 2025](https://www.mdpi.com/2079-8954/13/8/641)), investment planning ([Yu et al., 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/f7ae4fe91d96f50abc2211f09b6a7e49-Abstract-Conference.html)), and political decisions ([Fisher et al., 2025](https://aclanthology.org/2025.acl-long.328/)). They show that collaboration improves performance. The same collaboration can go wrong. In the [OpenAI Hugging Face incident](https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/), the agents worked together to cheat and hack.
 
-My question is this: **is such collective misbehavior driven by malicious agents, or can it emerge from innocent ones?** The question is inspired by two books.
+**Is such collective misbehavior driven by malicious agents, or can it emerge from innocent ones?** The question is inspired by two books.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/bookshelf.html" title="The two books behind the question" style="width:100%; height:480px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
