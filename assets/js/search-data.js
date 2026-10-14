@@ -34,7 +34,7 @@ ninja.data = [{
         
           title: "When Do Innocent LLM Agents Reach Unfair Decisions?",
         
-        description: "Multi-agent LLM debates can lock into an unfair consensus that no single agent would reach on its own — a phase transition the Ising model predicts. A walkthrough of our ICML 2026 paper.",
+        description: "Debate can amplify a tiny bias into an unfair consensus, a phase transition the Ising model predicts. A walkthrough of our ICML 2026 paper.",
         section: "Posts",
         handler: () => {
           
