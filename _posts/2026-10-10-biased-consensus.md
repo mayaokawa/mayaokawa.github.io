@@ -25,10 +25,10 @@ related_posts: false
   .post .post-content b {
     font-weight: 600;
   }
-  .sim-t { cursor: pointer; color: #2b5f86; border-bottom: 1.5px dotted #2b5f86; padding: 0 2px; border-radius: 3px; transition: background 0.15s; }
-  .sim-t:hover { background: #eaf2f7; }
-  html[data-theme="dark"] .sim-t { color: #7fb3d5; border-bottom-color: #7fb3d5; }
-  html[data-theme="dark"] .sim-t:hover { background: #1b2a36; }
+  .sim-t, .sim-fp { cursor: pointer; color: #2b5f86; border-bottom: 1.5px dotted #2b5f86; padding: 0 2px; border-radius: 3px; transition: background 0.15s; }
+  .sim-t:hover, .sim-fp:hover { background: #eaf2f7; }
+  html[data-theme="dark"] .sim-t, html[data-theme="dark"] .sim-fp { color: #7fb3d5; border-bottom-color: #7fb3d5; }
+  html[data-theme="dark"] .sim-t:hover, html[data-theme="dark"] .sim-fp:hover { background: #1b2a36; }
   .eq-click { cursor: pointer; border-radius: 12px; transition: background 0.15s; }
   .eq-click:hover,
   .eq-click[aria-expanded="true"] { background: #eaf2f7; }
@@ -121,20 +121,20 @@ $$
 <div class="eq-note">\(\rho\): the fraction of the population each agent chats with, so \(\rho N\) is the number of peers</div>
 <div class="deriv-hint" id="deriv-hint">click the equation to see where it comes from</div>
 <div class="deriv" id="deriv">
-<p><b>Start with one agent.</b> Each round, agent \(i\) adds up the opinions \(\sigma_j = \pm 1\) of the peers it chats with, weights the sum by its conformity \(\lambda\), and adds its own tilt \(\gamma_i/2\). Call the total \(f_i\): a score in favor of \(+1\) (and \(-f_i\) in favor of \(-1\)).</p>
+<p><b>Start from the local interaction equation.</b> Each round, agent \(i\) adds up the opinions \(\sigma_j = \pm 1\) of the peers it chats with, weights the sum by its conformity \(\lambda\), and adds its own tilt \(\gamma_i/2\). Call the total \(f_i\): a score in favor of \(+1\) (and \(-f_i\) in favor of \(-1\)).</p>
 $$ f_i \;=\; \lambda \sum_{j \in \text{peers}(i)} \sigma_j \;+\; \gamma_i/2 $$
-<p><b>Sampling at temperature T.</b> The agent does not pick the higher score; it samples. Sampling two options with scores \(\pm f_i\) at temperature \(T\) means choosing \(+1\) with probability</p>
+<p><b>Sample at temperature T.</b> The agent does not pick the higher score; it samples. Sampling two options with scores \(\pm f_i\) at temperature \(T\) means choosing \(+1\) with probability</p>
 $$ p_i \;=\; \frac{e^{f_i/T}}{e^{f_i/T} + e^{-f_i/T}} $$
 <p>which is exactly the softmax an LLM uses to pick its next token, with the temperature in the same place. The expected opinion is then \(p_i\cdot(+1) + (1-p_i)\cdot(-1) = 2p_i - 1\). Writing it out, the ratio of exponentials is a hyperbolic tangent:</p>
 $$ \langle \sigma_i \rangle \;=\; 2p_i - 1 \;=\; \frac{e^{f_i/T} - e^{-f_i/T}}{e^{f_i/T} + e^{-f_i/T}} \;=\; \tanh\!\left(\frac{f_i}{T}\right) $$
-<p><b>The one approximation.</b> Agent \(i\) chats with about \(\rho N\) peers. If who chats with whom is not strongly correlated with what anyone thinks, then a sum of \(\rho N\) opinions is, on average, just \(\rho N\) times the population's average opinion \(m\):</p>
+<p><b>Make one approximation.</b> Agent \(i\) chats with about \(\rho N\) peers. If who chats with whom is not strongly correlated with what anyone thinks, then a sum of \(\rho N\) opinions is, on average, just \(\rho N\) times the population's average opinion \(m\):</p>
 $$ \sum_{j \in \text{peers}(i)} \sigma_j \;\approx\; \rho N \, m(t) $$
 <p>Substituting this, and replacing each agent's own tilt \(\gamma_i\) by the population's average tilt \(\gamma\), makes every agent's rule the same, so averaging it over all agents gives the rule for \(m\) itself:</p>
 $$ m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#2b5f86}{\lambda\,\rho N}\, m(t) + \gamma/2}{\textcolor{#2b5f86}{T}}\Bigg) \;+\; \eta(t) $$
 <p>The \(\eta\) term is what the approximation leaves out: each agent's sum differs a little from \(\rho N\, m\), and with only \(\rho N\) terms in the sum that difference is of order \(\dfrac{1}{\sqrt{\rho N}}\). For a thousand agents it is negligible; for ten it is not, which is why small populations show a crossover rather than a sharp transition.</p>
 </div>
 
-The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#2b5f86}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity \\(\lambda = 1.5\\) and \\(T = 0.35\\), a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three; raise \\(T\\) past \\(1.5\\) and three rounds later the average is still below 0.1. This is the mechanism of the phase transition.
+The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#2b5f86}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="0.35" title="Set the figure below to these values">\\(\lambda = 1.5\\) and \\(T = 0.35\\)</span>, a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three; <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="1.6" title="Set the figure below to these values">raise \\(T\\) past \\(1.5\\)</span> and three rounds later the average is still below 0.1. This is the mechanism of the phase transition.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/tanh-fixed-point.html" title="Interactive figure: the population average through the tanh curve, round after round" style="width:min(94vw, 920px); margin-left:calc(50% - min(47vw, 460px)); height:560px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
@@ -264,6 +264,31 @@ So whose side should we take, Ballantyne's or Golding's? Neither, because the qu
         if (k.key === "Enter" || k.key === " ") {
           k.preventDefault();
           setT();
+        }
+      });
+    });
+
+    Array.prototype.slice.call(document.querySelectorAll(".sim-fp")).forEach(function (s) {
+      var setFp = function () {
+        var f = document.querySelector('iframe[src*="tanh-fixed-point"]');
+        if (!f) return;
+        try {
+          var d = f.contentDocument;
+          var lam = d.getElementById("fp-lam"),
+            t = d.getElementById("fp-T");
+          if (!lam || !t) return;
+          lam.value = s.getAttribute("data-lam");
+          t.value = s.getAttribute("data-t");
+          lam.dispatchEvent(new Event("input"));
+          t.dispatchEvent(new Event("input"));
+          f.scrollIntoView({ behavior: "smooth", block: "center" });
+        } catch (err) {}
+      };
+      s.addEventListener("click", setFp);
+      s.addEventListener("keydown", function (k) {
+        if (k.key === "Enter" || k.key === " ") {
+          k.preventDefault();
+          setFp();
         }
       });
     });
