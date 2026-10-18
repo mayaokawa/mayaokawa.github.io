@@ -25,6 +25,10 @@ related_posts: false
   .post .post-content b {
     font-weight: 600;
   }
+  .sim-t { cursor: pointer; color: #2b5f86; border-bottom: 1.5px dotted #2b5f86; padding: 0 2px; border-radius: 3px; transition: background 0.15s; }
+  .sim-t:hover { background: #eaf2f7; }
+  html[data-theme="dark"] .sim-t { color: #7fb3d5; border-bottom-color: #7fb3d5; }
+  html[data-theme="dark"] .sim-t:hover { background: #1b2a36; }
   .eq-click { cursor: pointer; border-radius: 12px; transition: background 0.15s; }
   .eq-click:hover,
   .eq-click[aria-expanded="true"] { background: #eaf2f7; }
@@ -75,7 +79,7 @@ In [*Eichmann in Jerusalem*](https://www.penguinrandomhouse.com/books/320983/eic
 William Golding wrote his novel [*Lord of the Flies*](https://www.faber.co.uk/product/9780571056866-lord-of-the-flies/) (1954) as a rebuttal to [*The Coral Island*](https://www.britannica.com/topic/The-Coral-Island) (1857), R. M. Ballantyne's adventure story in which three boys stranded on a desert island cooperate and live happily, with every danger coming from outside. Golding did not believe it. In his novel, the danger comes from within: the boys, none of them wicked at the start, split into rival groups over small disputes, fight, and end up killing one another.
 
 
-Which view should we take of a society of LLM agents, Ballantyne's or Golding's? To answer this, we measure misbehavior along a less explored axis: fairness. As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. stocks. U.S. stocks are about 44% of the world's market value, but the agents' first-round picks are already more than 90% U.S. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature.
+Which view should we take of a society of LLM agents, Ballantyne's or Golding's? To answer this, we measure misbehavior along a less explored axis: fairness. As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. stocks. U.S. stocks are about 44% of the world's market value, but even before the debate starts, the agents put more than 90% of the money there. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature.
 
 <figure class="post-fig" style="margin:28px auto; max-width:700px;">
   <img src="/assets/img/blog/biased-consensus/fig1a.png" alt="Share of U.S. stocks over debate rounds and versus sampling temperature" style="width:100%; height:auto;">
@@ -83,23 +87,23 @@ Which view should we take of a society of LLM agents, Ballantyne's or Golding's?
 
 *Left: the share of U.S. stocks in the portfolio ("US bias" in the figure) over the seven debate rounds at five sampling temperatures (\\(T = 0.2\\) to \\(1.4\\)), averaged over 50 runs; at low temperature (e.g., \\(T = 0.2\\), \\(0.5\\)) the bias grows round by round. Right: the share of U.S. stocks after seven rounds against sampling temperature (pink): the colder the sampling, the more U.S.-heavy the agreed portfolio. For reference, the teal curve is the return of the agreed portfolio over December 7, 2025 to January 12, 2026; betting on the U.S. is not always the better bet.*
 
-Below a sampling temperature of about 0.6, debate amplifies the agents' U.S. preference until the panel agrees on an almost all-U.S. portfolio. Such a sharp change at a threshold is a **phase transition**, and the rest of this post explains why debate has one.
+Below a sampling temperature of about 0.6, debate amplifies the agents' U.S. preference until all the agents agree on a portfolio that is almost entirely U.S. stocks. Such a sharp change at a threshold is a **phase transition**, and the rest of this post explains why debate has one.
 
 ## A toy model of debate
 
-To understand why this happens, let us do what a physicist would do and start with the simplest case. There are \\(N\\) agents, and each holds one of two opinions, \\(+1\\) or \\(-1\\). Say the question is which is cuter, dogs (\\(+1\\)) or cats (\\(-1\\)); it could just as well be Democrat or Republican. Each round the agents talk and update their opinions. Three things can push an opinion one way or the other:
+To understand why this happens, let us do what a physicist would do and start with the simplest case. There are \\(N\\) agents, and each holds one of two opinions, \\(+1\\) or \\(-1\\). Say the question is which is cuter, dogs (\\(+1\\)) or cats (\\(-1\\)); it could just as well be Democrat or Republican. In each round the agents talk and may update their opinions. Three things can push an opinion one way or the other:
 
-1. **A tilt of its own.** Each agent leans slightly toward one option. This is its local bias, \\(\gamma\\).
+1. **Its own preference.** Each agent leans slightly toward one option. This is its local bias, \\(\gamma\\).
 2. **Peer pressure.** The more peers chose \\(+1\\) last round, the more an agent leans toward \\(+1\\). How strongly it follows the crowd is its conformity, \\(\lambda\\).
 3. **Chance.** An agent draws its answer at random, weighted toward the option it leans to. How much randomness there is depends on a temperature \\(T\\), which for an LLM is literally the sampling temperature.
 
-That is the [Ising model](https://doi.org/10.1007/BF02980577), proposed in 1920 to explain the ferromagnetic phase transition: iron loses its magnetism when heated above about 770 °C, the Curie temperature, and regains it when cooled below. Each atom in a piece of iron carries a tiny magnet, a spin, that points up or down. An outside field nudges each spin, neighboring spins pull each other into line, and heat flips them at random. Below the Curie temperature the pull wins and the spins line up; above it, heat wins. Replacing "spin" with "opinion", [Weidlich](https://doi.org/10.1111/j.2044-8317.1971.tb00470.x) read the same equations as a model of opinion formation in human societies in 1971. Here we reread it as a model of an LLM society. So almost everything is measurable, and every parameter is a knob we can control.
+That is the [Ising model](https://doi.org/10.1007/BF02980577), proposed in 1920 to explain the ferromagnetic phase transition: iron loses its magnetism when heated above about 770 °C, the Curie temperature, and regains it when cooled below. Each atom in a piece of iron carries a tiny magnet, a spin, that points either up or down. An outside field nudges each spin, neighboring spins pull each other into line, and heat flips them at random. Below the Curie temperature the pull wins and the spins line up; above it, heat wins. Replacing "spin" with "opinion", [Weidlich](https://doi.org/10.1111/j.2044-8317.1971.tb00470.x) read the same equations as a model of opinion formation in human societies in 1971. Here we reread it as a model of an LLM society. So almost everything is measurable, and every parameter is a knob we can control.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/analogy.html" title="A lattice of spins beside a panel of agents, with the mapping between the two" style="width:100%; height:660px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
 ## Cooling a debate
 
-Here is the Ising model simulating a debate about dogs versus cats among a few dozen agents. Assume that the majority of them have a slight preference for dogs. At a low sampling temperature, say \\(T = 0.2\\), the population converges within a few rounds to a biased consensus: everyone ends up on the dog side. Raise the temperature, say to \\(T = 1.3\\), and diversity survives. This is exactly what we just saw in the investment task. Switch to a smaller group in which everyone chats with everyone, and raising the temperature still takes the population through the same transition.
+Here is the Ising model simulating a debate about dogs versus cats among a few dozen agents. Assume that the majority of them have a slight preference for dogs. At a low sampling temperature, say <span class="sim-t" role="button" tabindex="0" data-t="0.2" title="Set the simulator below to this temperature">\\(T = 0.2\\)</span>, the population converges within a few rounds to a biased consensus: everyone ends up on the dog side. Raise the temperature, say to <span class="sim-t" role="button" tabindex="0" data-t="1.3" title="Set the simulator below to this temperature">\\(T = 1.3\\)</span>, and diversity survives. This is exactly what we just saw in the investment task. Switch to a smaller group in which everyone chats with everyone, and raising the temperature still takes the population through the same transition.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/cooling-the-debate.html" title="Interactive simulator: sampling temperature and biased consensus" style="width:100%; height:720px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
@@ -242,5 +246,26 @@ So whose side should we take, Ballantyne's or Golding's? Neither, because the qu
         }
       });
     }
+
+    Array.prototype.slice.call(document.querySelectorAll(".sim-t")).forEach(function (s) {
+      var setT = function () {
+        var f = document.querySelector('iframe[src*="cooling-the-debate"]');
+        if (!f) return;
+        try {
+          var slider = f.contentDocument.getElementById("sp-T");
+          if (!slider) return;
+          slider.value = s.getAttribute("data-t");
+          slider.dispatchEvent(new Event("input"));
+          f.scrollIntoView({ behavior: "smooth", block: "center" });
+        } catch (err) {}
+      };
+      s.addEventListener("click", setT);
+      s.addEventListener("keydown", function (k) {
+        if (k.key === "Enter" || k.key === " ") {
+          k.preventDefault();
+          setT();
+        }
+      });
+    });
   })();
 </script>
