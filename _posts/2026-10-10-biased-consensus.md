@@ -29,6 +29,18 @@ related_posts: false
   .sim-t:hover, .sim-fp:hover { background: #eaf2f7; }
   html[data-theme="dark"] .sim-t, html[data-theme="dark"] .sim-fp { color: #7fb3d5; border-bottom-color: #7fb3d5; }
   html[data-theme="dark"] .sim-t:hover, html[data-theme="dark"] .sim-fp:hover { background: #1b2a36; }
+  html[data-theme="dark"] .post-fig img,
+  html[data-theme="dark"] .fig4-row img {
+    background: #fff;
+    border-radius: 10px;
+    padding: 8px;
+    filter: brightness(0.93);
+  }
+  html[data-theme="dark"] iframe.post-embed[src*="bookshelf"] {
+    background: #fff;
+    border-radius: 12px;
+    filter: brightness(0.96);
+  }
   .eq-click { cursor: pointer; border-radius: 12px; transition: background 0.15s; }
   .eq-click:hover,
   .eq-click[aria-expanded="true"] { background: #eaf2f7; }
@@ -134,7 +146,7 @@ $$ m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#2b5f86}{\lambda\,\rho N}\, m(t) + \
 <p>The \(\eta\) term is what the approximation leaves out: each agent's sum differs a little from \(\rho N\, m\), and with only \(\rho N\) terms in the sum that difference is of order \(\dfrac{1}{\sqrt{\rho N}}\). For a thousand agents it is negligible; for ten it is not, which is why small populations show a crossover rather than a sharp transition.</p>
 </div>
 
-The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#2b5f86}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="0.35" title="Set the figure below to these values">\\(\lambda = 1.5\\) and \\(T = 0.35\\)</span>, a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three; <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="1.6" title="Set the figure below to these values">raise \\(T\\) past \\(1.5\\)</span> and three rounds later the average is still below 0.1. This is the mechanism of the phase transition.
+The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#2b5f86}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="0.35" title="Set the figure below to these values">\\(\lambda = 1.5\\) and \\(T = 0.35\\)</span>, a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three. If you <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="1.6" title="Set the figure below to these values">raise \\(T\\) past \\(1.5\\)</span>, the average stays below 0.1 even after three rounds. This is the mechanism of the phase transition.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/tanh-fixed-point.html" title="Interactive figure: the population average through the tanh curve, round after round" style="width:min(94vw, 920px); margin-left:calc(50% - min(47vw, 460px)); height:560px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
@@ -221,9 +233,25 @@ So whose side should we take, Ballantyne's or Golding's? Neither, because the qu
         }
       } catch (e) {}
     }
-    Array.prototype.slice.call(document.querySelectorAll("iframe.post-embed")).forEach(function (f) {
-      f.addEventListener("load", function () { watch(f); });
+    var frames = Array.prototype.slice.call(document.querySelectorAll("iframe.post-embed"));
+    var syncTheme = function () {
+      var th = document.documentElement.getAttribute("data-theme") || "light";
+      frames.forEach(function (f) {
+        try {
+          if (f.contentDocument && f.contentDocument.documentElement) {
+            f.contentDocument.documentElement.setAttribute("data-theme", th);
+          }
+        } catch (e) {}
+      });
+    };
+    frames.forEach(function (f) {
+      f.addEventListener("load", function () { watch(f); syncTheme(); });
       if (f.contentDocument && f.contentDocument.readyState === "complete") watch(f);
+    });
+    syncTheme();
+    new MutationObserver(syncTheme).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
     });
 
     var e = document.getElementById("eq-mf"),
