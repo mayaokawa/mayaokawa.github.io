@@ -40,11 +40,6 @@ related_posts: false
     background: none;
     padding: 0;
   }
-  html[data-theme="dark"] iframe.post-embed[src*="bookshelf"] {
-    background: #fff;
-    border-radius: 12px;
-    filter: brightness(0.96);
-  }
   .eq-click { cursor: pointer; border-radius: 12px; transition: background 0.15s; }
   .eq-click:hover,
   .eq-click[aria-expanded="true"] { background: #eaf2f7; }
@@ -97,7 +92,7 @@ William Golding wrote his novel [*Lord of the Flies*](https://www.faber.co.uk/pr
 
 Which view should we take of a society of LLM agents, Ballantyne's or Golding's? To answer this, we measure misbehavior along a less explored axis: fairness. As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. stocks. U.S. stocks are about 44% of the world's market value, but even before the debate starts, the agents put more than 90% of the money there. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature.
 
-<figure class="post-fig" style="margin:28px auto; max-width:700px;">
+<figure class="post-fig" style="margin:28px 0; width:min(94vw, 820px); margin-left:calc(50% - min(47vw, 410px));">
   <img class="no-card" src="/assets/img/blog/biased-consensus/fig1a.png" alt="Share of U.S. stocks over debate rounds and versus sampling temperature" style="width:100%; height:auto;">
 </figure>
 
