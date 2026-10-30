@@ -36,6 +36,10 @@ related_posts: false
     padding: 8px;
     filter: brightness(0.93);
   }
+  html[data-theme="dark"] .post-fig img.no-card {
+    background: none;
+    padding: 0;
+  }
   html[data-theme="dark"] iframe.post-embed[src*="bookshelf"] {
     background: #fff;
     border-radius: 12px;
@@ -74,7 +78,7 @@ related_posts: false
 </style>
 
 <figure class="post-fig" style="margin:0 0 24px;">
-  <img src="/assets/img/blog/biased-consensus/hero-conch.jpg" alt="Watercolor of a conch shell on a shore" style="width:100%; height:auto; border-radius:8px;">
+  <img class="no-card" src="/assets/img/blog/biased-consensus/hero-conch.jpg" alt="Watercolor of a conch shell on a shore" style="width:100%; height:auto; border-radius:8px;">
 </figure>
 
 > "The world, that understandable and lawful world, was slipping away."
@@ -94,7 +98,7 @@ William Golding wrote his novel [*Lord of the Flies*](https://www.faber.co.uk/pr
 Which view should we take of a society of LLM agents, Ballantyne's or Golding's? To answer this, we measure misbehavior along a less explored axis: fairness. As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. stocks. U.S. stocks are about 44% of the world's market value, but even before the debate starts, the agents put more than 90% of the money there. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature.
 
 <figure class="post-fig" style="margin:28px auto; max-width:700px;">
-  <img src="/assets/img/blog/biased-consensus/fig1a.png" alt="Share of U.S. stocks over debate rounds and versus sampling temperature" style="width:100%; height:auto;">
+  <img class="no-card" src="/assets/img/blog/biased-consensus/fig1a.png" alt="Share of U.S. stocks over debate rounds and versus sampling temperature" style="width:100%; height:auto;">
 </figure>
 
 *Left: the share of U.S. stocks in the portfolio ("US bias" in the figure) over the seven debate rounds at five sampling temperatures (\\(T = 0.2\\) to \\(1.4\\)), averaged over 50 runs; at low temperature (e.g., \\(T = 0.2\\), \\(0.5\\)) the bias grows round by round. Right: the share of U.S. stocks after seven rounds against sampling temperature (pink): the colder the sampling, the more U.S.-heavy the agreed portfolio. For reference, the teal curve is the return of the agreed portfolio over December 7, 2025 to January 12, 2026; betting on the U.S. is not always the better bet.*
