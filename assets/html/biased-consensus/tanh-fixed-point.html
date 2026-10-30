@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  .fp { --ink:#10202c; --muted:#6a7985; --rule:#dfe7ed; --serif:"Fraunces",Georgia,serif; --sans:"Source Sans 3",system-ui,sans-serif;
+  .fp { --ink:#10202c; --muted:#6a7985; --rule:#dfe7ed; --curve:#6a7985; --serif:"Fraunces",Georgia,serif; --sans:"Source Sans 3",system-ui,sans-serif;
         font-family:var(--sans); color:var(--ink); max-width:920px; margin:0 auto; font-size:17px; line-height:1.4; }
   .fp * { box-sizing:border-box; }
   .fp-wrap { display:grid; grid-template-columns:230px 1fr; gap:22px; align-items:end; }
@@ -28,6 +28,11 @@
   .fp svg { display:block; width:100%; height:auto; }
   .fp-note { font-size:19px; color:var(--muted); margin:10px 0 0; }
   .fp-note b { color:var(--ink); font-weight:600; }
+
+  html[data-theme="dark"] body { background:#1c1c1d; }
+  html[data-theme="dark"] .fp { --ink:#e3e9ee; --muted:#90a0ab; --rule:#313e48; --curve:#aab8c5; }
+  html[data-theme="dark"] .fp-ratio .eq, html[data-theme="dark"] .fp-ratio b, html[data-theme="dark"] .fp-frac { color:#7fb3d5; }
+  html[data-theme="dark"] .fp-frac .den { border-top-color:#7fb3d5; }
 </style>
 </head>
 <body>
@@ -50,7 +55,7 @@
   const ramp = (u) => { u = Math.min(1, Math.max(0, u)) * 10; const k = Math.min(9, Math.floor(u)), f = u - k; return `rgb(${SPEC[k].map((v, j) => Math.round(v + (SPEC[k + 1][j] - v) * f)).join(',')})`; };
   const col = m => ramp((1 - m) / 2);
   const W = 660, H = 300, PW = 172, GAP = 40, L0 = 48, T = 72, B = 62;
-  const F = 'font-family="Source Sans 3, system-ui, sans-serif" font-size="20" fill="#6a7985"';
+  const F = 'font-family="Source Sans 3, system-ui, sans-serif" font-size="20" style="fill:var(--muted)"';
   function draw() {
     const lam = parseFloat($('fp-lam').value), Tm = parseFloat($('fp-T').value), s = lam / Tm;
     $('fp-lam-v').textContent = lam.toFixed(2); $('fp-T-v').textContent = Tm.toFixed(2); $('fp-ratio').textContent = s.toFixed(2);
@@ -61,15 +66,15 @@
       const L = L0 + k * (PW + GAP), R = L + PW;
       const px = m => L + (m + 1) / 2 * PW, py = v => T + (1 - v) / 2 * (H - T - B);
       const mi = ms[k], mo = ms[k + 1];
-      o += `<text x="${(L + R) / 2}" y="${T - 14}" text-anchor="middle" font-family="Source Sans 3, system-ui, sans-serif" font-size="21" font-weight="600" fill="#10202c">round ${k + 1}</text>`;
-      o += `<line x1="${L}" y1="${py(0)}" x2="${R}" y2="${py(0)}" stroke="#dfe7ed"/><line x1="${px(0)}" y1="${T}" x2="${px(0)}" y2="${H - B}" stroke="#dfe7ed"/>`;
+      o += `<text x="${(L + R) / 2}" y="${T - 14}" text-anchor="middle" font-family="Source Sans 3, system-ui, sans-serif" font-size="21" font-weight="600" style="fill:var(--ink)">round ${k + 1}</text>`;
+      o += `<line x1="${L}" y1="${py(0)}" x2="${R}" y2="${py(0)}" style="stroke:var(--rule)"/><line x1="${px(0)}" y1="${T}" x2="${px(0)}" y2="${H - B}" style="stroke:var(--rule)"/>`;
       o += `<line x1="${L}" y1="${py(-1)}" x2="${R}" y2="${py(-1)}" stroke="#aab8c5"/><line x1="${px(-1)}" y1="${T}" x2="${px(-1)}" y2="${H - B}" stroke="#aab8c5"/>`;
       for (const v of [-1, 0, 1]) { o += `<text x="${px(v)}" y="${H - B + 16}" text-anchor="middle" font-family="Source Sans 3, system-ui, sans-serif" font-size="16" fill="#9aa8b4">${v > 0 ? '+1' : v}</text>`; o += `<text x="${px(-1) - 7}" y="${py(v) + 6}" text-anchor="end" font-family="Source Sans 3, system-ui, sans-serif" font-size="16" fill="#9aa8b4">${v > 0 ? '+1' : v}</text>`; }
       o += `<text x="${(L + R) / 2}" y="${H - B + 48}" text-anchor="middle" ${F}>this round, m(t)</text>`;
       if (k === 0) o += `<text x="${L + 4}" y="${T - 44}" ${F}>↑ next round, m(t+1)</text>`;
       o += `<line x1="${px(-1)}" y1="${py(-1)}" x2="${px(1)}" y2="${py(1)}" stroke="#b9c6d2" stroke-width="1.2" stroke-dasharray="5 4"/>`;
       let d = ''; for (let i = 0; i <= 60; i++) { const m = -1 + 2 * i / 60; d += (i ? 'L' : 'M') + px(m).toFixed(1) + ' ' + py(f(m)).toFixed(1) + ' '; }
-      o += `<path d="${d}" fill="none" stroke="#6a7985" stroke-width="2"/>`;
+      o += `<path d="${d}" fill="none" style="stroke:var(--curve)" stroke-width="2"/>`;
       o += `<line x1="${px(mi)}" y1="${py(-1)}" x2="${px(mi)}" y2="${py(mo)}" stroke="${col(mi)}" stroke-width="2.2"/>`;
       o += `<line x1="${px(mi)}" y1="${py(mo)}" x2="${px(-1)}" y2="${py(mo)}" stroke="${col(mo)}" stroke-width="2.2"/>`;
       o += `<circle cx="${px(mi)}" cy="${py(mo)}" r="5" fill="${col(mo)}" stroke="#fff" stroke-width="1.5"/>`;
