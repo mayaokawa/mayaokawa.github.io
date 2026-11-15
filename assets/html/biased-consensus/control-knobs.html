@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three knobs against a biased consensus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #fff; }
+  .ck {
+    --ink: #10202c; --muted: #6a7985; --rule: #dfe7ed; --accent: #2b5f86; --minus: #9e0142;
+    --serif: "Fraunces", Georgia, serif; --sans: "Source Sans 3", system-ui, sans-serif;
+    font-family: var(--sans); color: var(--ink); max-width: 920px; margin: 0 auto; padding: 0 8px; font-size: 17px; line-height: 1.4;
+  }
+  .ck * { box-sizing: border-box; }
+
+  .ck-knobs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 28px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .ck-knobs { grid-template-columns: 1fr; } }
+  .ck-knob label { display: block; font-size: 17px; color: var(--muted); margin-bottom: 6px; }
+  .ck-knob label i { font-family: var(--serif); color: var(--ink); }
+  .ck-knob .row { display: flex; align-items: center; gap: 10px; }
+  .ck-knob .val { font-family: var(--serif); font-weight: 500; font-size: 21px; line-height: 1; font-variant-numeric: tabular-nums; min-width: 2.4em; text-align: right; }
+  .ck-range { -webkit-appearance: none; appearance: none; flex: 1; min-width: 0; height: 8px; border-radius: 999px; outline: none; margin: 0; cursor: pointer; background: var(--rule); }
+  .ck-range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); cursor: grab; box-shadow: 0 1px 4px rgba(16,32,44,.25); }
+  .ck-range::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); cursor: grab; }
+  .ck-range:focus-visible { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--minus); }
+
+  .ck-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 12px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin-bottom: 10px; }
+  .ck-frac { display: inline-flex; flex-direction: column; align-items: center; color: var(--accent); font-family: var(--serif); font-size: 19px; line-height: 1.15; }
+  .ck-frac .num { padding: 0 4px 1px; } .ck-frac .den { padding: 1px 4px 0; border-top: 1.5px solid var(--accent); }
+  .ck-bar .eq { color: var(--accent); font-size: 20px; }
+  .ck-bar b#ck-ratio { font-family: var(--serif); font-weight: 500; font-size: 26px; color: var(--accent); font-variant-numeric: tabular-nums; min-width: 2.6em; }
+  .ck-verdict { font-size: 18px; color: var(--muted); }
+  .ck-verdict b { color: var(--ink); font-weight: 600; }
+  .ck-btns { display: flex; gap: 8px; margin-left: auto; }
+  .ck-btns button { font: inherit; font-size: 17px; color: var(--ink); background: none; border: 1px solid var(--rule); border-radius: 999px; padding: 7px 14px; cursor: pointer; white-space: nowrap; }
+  .ck-btns button:hover { border-color: var(--ink); }
+  .ck-btns button:disabled { color: var(--muted); border-color: var(--rule); cursor: default; }
+  .ck-btns button:focus-visible { outline: 2px solid var(--minus); outline-offset: 2px; }
+  .ck-btns #ck-again { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .ck-body { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 26px; align-items: center; }
+  .ck-net { padding: 6px; aspect-ratio: 1 / 1; }
+  .ck-net svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .ck-spin { transition: transform .5s cubic-bezier(.4, 0, .2, 1); }
+  .ck-spin .sh, .ck-spin .hd { fill-opacity: 0.8; }
+  .ck-spin.up { transform: rotate(0deg); } .ck-spin.down { transform: rotate(180deg); }
+  .ck-plot { display: flex; flex-direction: column; min-height: 320px; }
+  .ck-plot svg { display: block; width: 100%; flex: 1; }
+
+  .ck-foot { display: grid; grid-template-columns: minmax(260px, 340px) 1fr; gap: 26px; margin-top: 4px; font-size: 17px; color: var(--muted); }
+  .ck-foot .m { font-family: var(--serif); font-weight: 500; font-size: 22px; color: var(--ink); font-variant-numeric: tabular-nums; margin-left: 2px; }
+  .ck-foot b { color: var(--ink); font-weight: 600; }
+  .ck-leg { white-space: nowrap; text-align: center; font-size: 18px; color: var(--ink); }
+  .ck-leg .ck-ramp { display: inline-block; width: 150px; height: 13px; border-radius: 999px; vertical-align: -1px; margin: 0 12px; background: linear-gradient(270deg, #9e0142, #d53e4f, #f46d43, #fdae61, #fee08b, #ffffbf, #e6f598, #abdda4, #66c2a5, #3288bd, #5e4fa2); }
+  .ck-avg { white-space: nowrap; text-align: right; }
+  @media (max-width: 640px) { .ck-body, .ck-foot { grid-template-columns: 1fr; } .ck-leg, .ck-avg { text-align: center; } .ck-btns { margin-left: 0; } }
+  @media (prefers-reduced-motion: reduce) { .ck-spin { transition: none; } }
+
+  html[data-theme="dark"] body { background:#1c1c1d; }
+  html[data-theme="dark"] .ck { --ink:#e3e9ee; --muted:#90a0ab; --rule:#313e48; --accent:#7fb3d5; }
+  html[data-theme="dark"] .ck-btns #ck-again { color:#10202c; }
+</style>
+</head>
+<body>
+<figure class="ck" id="ck" style="margin:0">
+
+  <div class="ck-knobs">
+    <div class="ck-knob">
+      <label for="ck-lam">conformity <i>λ</i></label>
+      <div class="row"><input class="ck-range" id="ck-lam" type="range" min="0" max="0.2" step="0.005" value="0.08"><span class="val" id="ck-lam-v">0.08</span></div>
+    </div>
+    <div class="ck-knob">
+      <label for="ck-T">sampling temperature <i>T</i></label>
+      <div class="row"><input class="ck-range" id="ck-T" type="range" min="0.1" max="2" step="0.01" value="0.4"><span class="val" id="ck-T-v">0.40</span></div>
+    </div>
+    <div class="ck-knob">
+      <label for="ck-k">peers each agent sees, <i>ρN</i></label>
+      <div class="row"><input class="ck-range" id="ck-k" type="range" min="1" max="19" step="1" value="19"><span class="val" id="ck-k-v">19</span></div>
+    </div>
+  </div>
+
+  <div class="ck-bar">
+    <span class="ck-frac"><span class="num"><i>λρN</i></span><span class="den"><i>T</i></span></span><span class="eq">=</span><b id="ck-ratio">3.80</b>
+    <span class="ck-verdict" id="ck-verdict"></span>
+    <div class="ck-btns"><button type="button" id="ck-run">Pause</button><button type="button" id="ck-again">Run again</button></div>
+  </div>
+
+  <div class="ck-body">
+    <div class="ck-net">
+      <svg id="ck-grid" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-label="Twenty agents on a ring, drawn as arrows; up is dog (+1), down is cat (−1). A line joins two agents when one sees the other's answer."></svg>
+    </div>
+    <div class="ck-plot">
+      <svg id="ck-chart" viewBox="0 0 460 300" aria-label="Every agent's lean over thirty rounds, with the group average in bold"></svg>
+    </div>
+  </div>
+
+  <figcaption class="ck-foot">
+    <span class="ck-leg">dog +1 <i class="ck-ramp"></i> −1 cat</span>
+    <span class="ck-avg">round <b id="ck-round">0</b> / 30 · group average <span class="m" id="ck-m">+0.00</span></span>
+  </figcaption>
+</figure>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const N = 20, R = 30, MS = 170;
+  const GAM = 0.26, TILT_FRAC = 0.7;   // 70% of agents carry a small tilt toward +1; the rest are neutral
+  let LAM = 0.08, T = 0.4, K = 19;     // conformity per peer, sampling temperature, peers each agent sees
+  let tilt, rand, sigma, lean, hist, mhist, peers, timer;
+
+  const SPEC = ['#5e4fa2','#3288bd','#66c2a5','#abdda4','#e6f598','#ffffbf','#fee08b','#fdae61','#f46d43','#d53e4f','#9e0142'].map(h => [1,3,5].map(k => parseInt(h.slice(k, k + 2), 16)));
+  function ramp(u) { u = Math.min(1, Math.max(0, u)) * 10; const k = Math.min(9, Math.floor(u)), f = u - k; return `rgb(${SPEC[k].map((v, j) => Math.round(v + (SPEC[k + 1][j] - v) * f)).join(',')})`; }
+  const valueColor = m => ramp((1 - m) / 2);
+  function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // perspective camera: the ring lies in the x–z plane, y up (same view as the simulator above)
+  function camera({ cx, cy, f, dist, pitch, yaw }) {
+    const cy_ = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    return (x, y, z) => { const X = x * cy_ - z * sy, Z0 = x * sy + z * cy_; const Y = y * cp + Z0 * sp, Z = -y * sp + Z0 * cp + dist; const s = f / Z; return [cx + X * s, cy - Y * s, s]; };
+  }
+  const P = camera({ cx: 50, cy: 50, f: 122, dist: 9.4, pitch: 0.6, yaw: 0.5 });
+  const grid = $('ck-grid'), spins = []; let shown = new Int8Array(N), flips = new Array(N).fill(null);
+  const sites = [...Array(N).keys()].map(i => { const th = Math.PI * 2 * i / N + 0.2, r = 2.6; const x = r * Math.cos(th), z = r * Math.sin(th); return { i, b: P(x, 0, z), t: P(x, 1.0, z) }; });
+  const byId = []; sites.forEach(s => { byId[s.i] = s; });
+
+  // who sees whom: each agent sees K others, drawn at random once per run
+  function drawPeers() {
+    const r = mulberry32(911 + K);
+    peers = [];
+    for (let i = 0; i < N; i++) {
+      const others = [...Array(N).keys()].filter(j => j !== i);
+      for (let k = others.length - 1; k > 0; k--) { const q = Math.floor(r() * (k + 1)); [others[k], others[q]] = [others[q], others[k]]; }
+      peers.push(others.slice(0, K));
+    }
+  }
+  function buildScene() {
+    grid.innerHTML = ''; spins.length = 0;
+    const seen = new Set(); let edges = '';
+    const op = (0.22 + 0.45 * (1 - (K - 1) / (N - 2))).toFixed(2), sw = (0.4 + 0.25 * (1 - (K - 1) / (N - 2))).toFixed(2);
+    for (let i = 0; i < N; i++) for (const j of peers[i]) {
+      const key = i < j ? i + '-' + j : j + '-' + i; if (seen.has(key)) continue; seen.add(key);
+      const a = byId[i].b, b = byId[j].b;
+      edges += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#aab8c5" stroke-width="${sw}" stroke-opacity="${op}"/>`;
+    }
+    grid.insertAdjacentHTML('beforeend', `<g>${edges}</g>`);
+    const order = sites.slice().sort((p, q) => p.b[2] - q.b[2]);
+    grid.insertAdjacentHTML('beforeend', `<g>${order.map(st => `<circle cx="${st.b[0]}" cy="${st.b[1]}" r="${0.07 * st.b[2]}" fill="#9fb2c2"/>`).join('')}</g>`);
+    for (const st of order) {
+      const [bx, by, s] = st.b, [tx, ty] = st.t;
+      const w = 0.1 * s, hw = 0.19 * s, hl = 0.27 * s;
+      const dx = tx - bx, dy = ty - by, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+      const hf = L * 0.5, sx = bx - ux * hf, sy = by - uy * hf, ex = bx + ux * hf, ey = by + uy * hf;
+      const hx = ex - ux * hl, hy = ey - uy * hl;
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', 'ck-spin up');
+      g.style.transformOrigin = `${bx}px ${by}px`; g.style.transformBox = 'view-box';
+      g.innerHTML = `<polygon class="sh" points="${sx + nx * w / 2},${sy + ny * w / 2} ${hx + nx * w / 2},${hy + ny * w / 2} ${hx - nx * w / 2},${hy - ny * w / 2} ${sx - nx * w / 2},${sy - ny * w / 2}"/>`
+        + `<polygon class="hd" points="${ex},${ey} ${hx + nx * hw},${hy + ny * hw} ${hx - nx * hw},${hy - ny * hw}"/>`;
+      grid.appendChild(g); spins[st.i] = g;
+    }
+  }
+
+  function field(i) { let s = 0; for (const j of peers[i]) s += sigma[j]; return LAM * s + tilt[i] / 2; }
+  function mean() { let s = 0; for (let i = 0; i < N; i++) s += sigma[i]; return s / N; }
+
+  function reset() {
+    rand = mulberry32(67);
+    // round 0: each agent answers alone, with only its own small tilt
+    tilt = new Float32Array(N); { const idx = [...Array(N).keys()]; for (let k = N - 1; k > 0; k--) { const r = Math.floor(rand() * (k + 1)); [idx[k], idx[r]] = [idx[r], idx[k]]; } for (let k = 0; k < Math.round(TILT_FRAC * N); k++) tilt[idx[k]] = GAM; }
+    sigma = new Int8Array(N); for (let i = 0; i < N; i++) { const p0 = 0.5 * (1 + Math.tanh((tilt[i] / 2) / T)); sigma[i] = rand() < p0 ? 1 : -1; }
+    lean = Array.from({ length: N }, (_, i) => Math.tanh(field(i) / T));
+    hist = lean.map(v => [v]); mhist = [mean()];
+    for (let i = 0; i < N; i++) { shown[i] = sigma[i]; flips[i] = null; }
+    paint(); draw();
+  }
+  function step() {
+    for (let u = 0; u < N; u++) {
+      const i = Math.floor(rand() * N);
+      const p = 0.5 * (1 + Math.tanh(field(i) / T));
+      sigma[i] = rand() < p ? 1 : -1;
+    }
+    for (let i = 0; i < N; i++) { lean[i] = Math.tanh(field(i) / T); hist[i].push(lean[i]); }
+    mhist.push(mean());
+    paint(); draw();
+  }
+
+  let raf = null;
+  const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  function tint(now) {
+    let busy = false;
+    for (let i = 0; i < N; i++) {
+      let v = shown[i];
+      if (flips[i]) { const t = Math.min(1, (now - flips[i].t0) / (reduce ? 1 : 500)); v = flips[i].from + (flips[i].to - flips[i].from) * ease(t); if (t < 1) busy = true; else flips[i] = null; }
+      const col = valueColor(v * 0.8);
+      for (const el of spins[i].querySelectorAll('.sh,.hd')) el.setAttribute('fill', col);
+    }
+    raf = busy ? requestAnimationFrame(tint) : null;
+  }
+  function paint() {
+    const now = performance.now();
+    for (let i = 0; i < N; i++) {
+      if (shown[i] !== sigma[i]) { flips[i] = { t0: now, from: shown[i], to: sigma[i] }; shown[i] = sigma[i]; }
+      spins[i].setAttribute('class', 'ck-spin ' + (sigma[i] > 0 ? 'up' : 'down'));
+    }
+    if (!raf) raf = requestAnimationFrame(tint);
+    $('ck-round').textContent = mhist.length - 1;
+    const m = mhist[mhist.length - 1];
+    $('ck-m').textContent = (m >= 0 ? '+' : '−') + Math.abs(m).toFixed(2); $('ck-m').style.color = valueColor(m);
+  }
+  function draw() {
+    const W = 460, H = 300, L = 48, Rr = 16, Tp = 20, B = 42;
+    const n = mhist.length;
+    const x = r => L + r / R * (W - L - Rr), y = v => Tp + (1 - v) / 2 * (H - Tp - B);
+    const F = 'font-family="Source Sans 3, system-ui, sans-serif" font-size="17" style="fill:var(--muted)"';
+    let o = '';
+    o += `<line x1="${L}" y1="${y(1)}" x2="${W - Rr}" y2="${y(1)}" style="stroke:var(--rule)"/>`;
+    o += `<line x1="${L}" y1="${y(-1)}" x2="${W - Rr}" y2="${y(-1)}" style="stroke:var(--rule)"/>`;
+    o += `<line x1="${L}" y1="${y(0)}" x2="${W - Rr}" y2="${y(0)}" stroke="#cbd7e0"/>`;
+    for (const [v, t] of [[1, '+1'], [0, '0'], [-1, '−1']]) o += `<text x="${L - 9}" y="${y(v) + 5}" text-anchor="end" ${F}>${t}</text>`;
+    o += `<text x="${L}" y="${H - 10}" ${F}>round 0</text><text x="${W - Rr}" y="${H - 10}" text-anchor="end" ${F}>${R}</text>`;
+    for (let i = 0; i < N; i++) for (let r = 1; r < n; r++) {
+      const v = (hist[i][r - 1] + hist[i][r]) / 2;
+      o += `<line x1="${x(r - 1).toFixed(1)}" y1="${y(hist[i][r - 1]).toFixed(1)}" x2="${x(r).toFixed(1)}" y2="${y(hist[i][r]).toFixed(1)}" stroke="${valueColor(v)}" stroke-opacity="0.3" stroke-width="1.3" stroke-linecap="round"/>`;
+    }
+    for (let r = 1; r < n; r++) {
+      const mm = (mhist[r - 1] + mhist[r]) / 2;
+      o += `<line x1="${x(r - 1).toFixed(1)}" y1="${y(mhist[r - 1]).toFixed(1)}" x2="${x(r).toFixed(1)}" y2="${y(mhist[r]).toFixed(1)}" stroke="${valueColor(mm)}" stroke-width="3.2" stroke-linecap="round"/>`;
+    }
+    o += `<circle cx="${x(n - 1)}" cy="${y(mhist[n - 1])}" r="5.5" fill="${valueColor(mhist[n - 1])}"/>`;
+    $('ck-chart').innerHTML = o;
+  }
+
+  const runBtn = $('ck-run');
+  function readKnobs() {
+    LAM = parseFloat($('ck-lam').value); T = parseFloat($('ck-T').value);
+    const k = parseInt($('ck-k').value, 10), rewire = k !== K || !peers; K = k;
+    $('ck-lam-v').textContent = LAM.toFixed(2); $('ck-T-v').textContent = T.toFixed(2); $('ck-k-v').textContent = K;
+    const s = LAM * K / T;
+    $('ck-ratio').textContent = s.toFixed(2);
+    $('ck-verdict').innerHTML = s >= 1.5 ? '<b>above 1</b>: the group locks into a consensus' : s >= 0.8 ? '<b>near 1</b>: the group is on the edge' : '<b>below 1</b>: opinions stay mixed';
+    if (rewire) { drawPeers(); buildScene(); }
+  }
+  function tick() { if (mhist.length - 1 >= R) { stop(); runBtn.textContent = 'Done'; runBtn.disabled = true; } else step(); }
+  function start() { clearInterval(timer); runBtn.disabled = false; timer = setInterval(tick, MS); runBtn.textContent = 'Pause'; }
+  function stop() { clearInterval(timer); timer = null; runBtn.textContent = 'Resume'; }
+  function runAgain() { stop(); reset(); if (reduce) { while (mhist.length - 1 < R) step(); runBtn.textContent = 'Done'; runBtn.disabled = true; } else start(); }
+  let pending;
+  ['ck-lam', 'ck-T', 'ck-k'].forEach(id => $(id).addEventListener('input', () => { readKnobs(); clearTimeout(pending); pending = setTimeout(runAgain, 250); }));
+  runBtn.addEventListener('click', () => timer ? stop() : start());
+  $('ck-again').addEventListener('click', runAgain);
+  readKnobs(); runAgain();
+})();
+</script>
+</body>
+</html>
