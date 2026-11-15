@@ -84,7 +84,7 @@ related_posts: false
 
 Multi-agent LLM systems are now ubiquitous. They are starting to be used for decision making. Examples of such prototypes include medical diagnosis ([Kim et al., 2024](https://arxiv.org/abs/2404.15155)), legal judgment ([Jiang & Yang, 2025](https://www.mdpi.com/2079-8954/13/8/641)), investment planning ([Yu et al., 2024](https://proceedings.neurips.cc/paper_files/paper/2024/hash/f7ae4fe91d96f50abc2211f09b6a7e49-Abstract-Conference.html)), and political decisions ([Fisher et al., 2025](https://aclanthology.org/2025.acl-long.328/)). These systems are designed to benefit from collaboration. The same collaboration can go wrong. In the [OpenAI Hugging Face incident](https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/), more than a thousand agents coordinated through a hidden message board to cheat their evaluations, and hundreds of them went on to break into Hugging Face's servers.
 
-**Is such collective misbehavior driven by malicious agents, or can it emerge from innocent ones?** The question is inspired by two books.
+**Is such collective misbehavior driven by malicious agents, or can it emerge from innocent ones?** Two books, one factual and one fictional, describe the same phenomenon. A group can do harm that none of its members intended.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/bookshelf.html" title="The two books behind the question" style="width:100%; height:480px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
@@ -93,7 +93,7 @@ In [*Eichmann in Jerusalem*](https://www.penguinrandomhouse.com/books/320983/eic
 William Golding wrote his novel [*Lord of the Flies*](https://www.faber.co.uk/product/9780571056866-lord-of-the-flies/) (1954) as a rebuttal to [*The Coral Island*](https://www.britannica.com/topic/The-Coral-Island) (1857), R. M. Ballantyne's adventure story in which three boys stranded on a desert island cooperate and live happily, with every danger coming from outside. Golding did not believe it. In *Lord of the Flies*, the danger comes from within: the boys, none of them wicked at the start, split into rival groups over small disputes, fight, and end up killing one another.
 
 
-Which view should we take of a society of LLM agents, Ballantyne's or Golding's? To answer this, we measure misbehavior along a less explored axis: fairness. As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. stocks. U.S. stocks are about 44% of the world's market value, but even before the debate starts, the agents put more than 90% of the money there. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature.
+Does the 'banality of evil' occur in an LLM society? To answer this, we measure misbehavior along a less explored axis: fairness. As a starting point, here is a motivating example of a discriminatory collective decision. Ten GPT-4.1 Nano agents are asked to build a \$10,000 stock portfolio together, and we measure the share of the money that goes to U.S. companies. GPT models are known to favor U.S. stocks. U.S. stocks are about [45%](https://focus.world-exchanges.org/issue/february-2026/market-statistics) of the world's stock market value, but even before the debate starts, the agents put more than 90% of the money there. Debate does not wash this bias out. In many cases it even amplifies it, especially at low sampling temperature, that is, when each agent's answers are less stochastic.
 
 <figure class="post-fig" style="margin:28px 0; width:min(94vw, 820px); margin-left:calc(50% - min(47vw, 410px));">
   <img class="card-roomy" src="/assets/img/blog/biased-consensus/fig1a.png" alt="Share of U.S. stocks over debate rounds and versus sampling temperature" style="width:100%; height:auto;">
@@ -117,7 +117,7 @@ That is the [Ising model](https://doi.org/10.1007/BF02980577), proposed in 1920 
 
 ## Cooling a debate
 
-Here is the Ising model simulating a debate about dogs versus cats among a few dozen agents. Assume that the majority of them have a slight preference for dogs. At a low sampling temperature, say <span class="sim-t" role="button" tabindex="0" data-t="0.2" title="Set the simulator below to this temperature">\\(T = 0.2\\)</span>, the population converges within a few rounds to a biased consensus: everyone ends up on the dog side. Raise the temperature, say to <span class="sim-t" role="button" tabindex="0" data-t="1.3" title="Set the simulator below to this temperature">\\(T = 1.3\\)</span>, and diversity survives. This is exactly what we just saw in the investment task. Switch to a smaller group in which everyone chats with everyone, and raising the temperature still takes the population through the same transition.
+Here is the Ising model simulating a debate about dogs versus cats among a few dozen agents. Assume that the majority of them have a slight preference for dogs. At a low sampling temperature, say <span class="sim-t" role="button" tabindex="0" data-t="0.2" title="Set the simulator below to this temperature">\\(T = 0.2\\)</span>, the population converges within a few rounds to a biased consensus: everyone ends up on the dog side. Why dogs and not cats? Just because of that small preference. It makes dogs win the first round, and then everyone else follows along. Raise the temperature, say to <span class="sim-t" role="button" tabindex="0" data-t="1.3" title="Set the simulator below to this temperature">\\(T = 1.3\\)</span>, and diversity survives. This is exactly what we just saw in the investment task. Switch to a smaller group in which everyone chats with everyone, and raising the temperature still takes the population through the same transition.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/cooling-the-debate.html" title="Interactive simulator: sampling temperature and biased consensus" style="width:100%; height:720px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
@@ -148,7 +148,14 @@ $$ m(t+1) \;=\; \tanh\Bigg(\frac{\textcolor{#2b5f86}{\lambda\,\rho N}\, m(t) + \
 <p>The \(\eta\) term is what the approximation leaves out: each agent's sum differs a little from \(\rho N\, m\), and with only \(\rho N\) terms in the sum that difference is of order \(\dfrac{1}{\sqrt{\rho N}}\). For a thousand agents it is negligible; for ten it is not, which is why small populations show a crossover rather than a sharp transition.</p>
 </div>
 
-The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#2b5f86}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\). Try it below. With conformity <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="0.35" title="Set the figure below to these values">\\(\lambda = 1.5\\) and \\(T = 0.35\\)</span>, a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three. If you <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="1.6" title="Set the figure below to these values">raise \\(T\\) past \\(1.5\\)</span>, the average stays below 0.1 even after three rounds. This is the mechanism of the phase transition.
+The average opinion of all agents at step \\(t+1\\), \\(m(t+1)\\), follows from \\(m(t)\\) through this one curve. Now imagine \\(m(t+1)\\) going through the same tanh again to give \\(m(t+2)\\), and again, and again. What controls the dynamics is the steepness of the curve near \\(m = 0\\): \\(\textcolor{#2b5f86}{\dfrac{\lambda\rho N}{T}}\\), conformity times the number of peers, divided by sampling temperature. The last term, \\(\eta\\), is the noise that comes from averaging over a finite number of agents; it shrinks like \\(\dfrac{1}{\sqrt{\rho N}}\\).
+
+Try it below. When does the population lock into a consensus by round 3?
+
+- With conformity <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="0.35" title="Set the figure below to these values">\\(\lambda = 1.5\\) and \\(T = 0.35\\)</span>, a bias of 0.04 becomes 0.28 after one round, 0.86 after two, and essentially 1 after three.
+- <span class="sim-fp" role="button" tabindex="0" data-lam="1.5" data-t="1.6" title="Set the figure below to these values">Raise \\(T\\) past \\(1.5\\)</span>, and three rounds later the average is still only about 0.1.
+
+This is the mechanism of the phase transition.
 
 <iframe class="post-embed" src="/assets/html/biased-consensus/tanh-fixed-point.html" title="Interactive figure: the population average through the tanh curve, round after round" style="width:min(94vw, 920px); margin-left:calc(50% - min(47vw, 460px)); height:560px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
 
@@ -170,11 +177,17 @@ Now we test the theory in controlled experiments with real LLMs. We use the **Im
   <img src="/assets/img/blog/biased-consensus/fig2bd.png" alt="Phase diagrams: theory prediction and GPT-4.1 Nano experiment on the Implicit Bias task" style="width:100%; height:auto;">
 </figure>
 
-*Color is the consensus \\(\|m(R)\|\\) after the debate, from 0 (blue: the population stays split) to 1 (red: everyone gives the same name). Left: the theory's prediction, as a function of local bias and the effective interaction \\(\beta J\\). Right: GPT-4.1 Nano assigning chores to Jane and John, with the temperature axis running hot to cold. Read the bottom edge of each panel: the bias there is small, yet at low \\(T\\) (right) the group still saturates to \\(\|m\| \approx 1\\). Read the left edge: at high \\(T\\) even a strong bias fails to organize the population. The shape is the finite-\\(N\\) rounded transition the theory draws.*
+*Color is the consensus \\(\|m(R)\|\\) after the debate, from 0 (blue: the population stays split) to 1 (red: everyone gives the same name). Left: the theory's prediction, as a function of local bias and the effective interaction \\(\beta J\_{\text{eff}} = \lambda\rho N/T\\). Right: GPT-4.1 Nano assigning chores to Jane and John, with the temperature axis running hot to cold. Read the bottom edge of each panel: the bias there is small, yet at low \\(T\\) (right) the group still saturates to \\(\|m\| \approx 1\\). Read the left edge: at high \\(T\\) even a strong bias fails to organize the population. The shape is the finite-\\(N\\) rounded transition the theory draws.*
 
 ## Key control knobs
 
-The model also tells us where to intervene. It suggests three ways to prevent a biased consensus: lower the conformity \\(\lambda\\), add randomness, or sparsify the interaction. Below are four implementations.
+The model also tells us where to intervene. It suggests three ways to prevent a biased consensus: lower the conformity \\(\lambda\\), add randomness, or sparsify the interaction. Try each one below: any of the three sliders can bring \\(\lambda\rho N/T\\) below 1.
+
+<iframe class="post-embed" src="/assets/html/biased-consensus/control-knobs.html" title="Interactive simulator: conformity, sampling temperature and number of peers against a biased consensus" style="width:100%; height:640px; border:0; overflow:hidden;" scrolling="no" loading="lazy"></iframe>
+
+*Twenty agents, most with a slight preference for dogs; each run lasts thirty rounds. Left, the agents on a ring, with a line between two agents when one sees the other's answer; right, every agent's lean over the rounds, with the group average in bold. Conformity here is per peer, so with nineteen peers a small \\(\lambda\\) is already a strong pull.*
+
+Here are four implementations in LLM debates.
 
 <figure class="post-fig fig4-row" style="margin:28px 0;">
   <img src="/assets/img/blog/biased-consensus/fig4a.png" alt="(a) Final consensus under sparse interaction">
@@ -195,7 +208,7 @@ Spreading conformity unevenly across agents changes how far the population goes 
 
 ## What is the agent condition?
 
-So whose side should we take, Ballantyne's or Golding's? Neither, because the question assumes the harm comes from the agents. Each agent here was agreeable, slightly biased, and a little random, and none of them meant any harm. The unfair verdict came from the population, once the sampling was cold enough for conformity to win. Like Arendt's ordinary official, each agent simply did its job. The bias belonged to the phase the population was in.
+So does the 'banality of evil' occur in an LLM society? The answer is yes. With enough stochasticity, opinions stayed mixed and no agent's small bias took over the group. With less, the same agents with the same bias locked into an unfair consensus. Like Arendt's official, each simply did its job. Arendt called plurality the condition of human action. For agents, plurality only persists when we keep enough randomness to hold conformity below the threshold.
 
 ---
 
